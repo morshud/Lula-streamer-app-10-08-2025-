@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback } from 'react'
 import NetInfo from '@react-native-community/netinfo'
 import BottomTabNavigation from './BottomTabNavigation'
 import { useDispatch } from 'react-redux'
-import Main from "../screens/Main"
 import Users from "../screens/Users"
 import Location from "../screens/Location"
 import ChatList from "../screens/ChatList"
@@ -16,6 +15,7 @@ import {
     Select, 
     Login, 
     Otp, 
+    Main, 
     Matching,
     SelectPartner,
     StartCalling,
@@ -68,7 +68,7 @@ const AppNavigation = () => {
                 <Stack.Screen name="Otp" component={Otp} />
                 <Stack.Screen name="CreateProfile" component={CreateProfile} />
                 
-                <Stack.Screen name="Main" component={BottomTabNavigation} />
+                <Stack.Screen name="Main" component={Main} />
                 <Stack.Screen name="Users" component={BottomTabNavigation} />
                 <Stack.Screen name="Analytics" component={BottomTabNavigation} />
                 <Stack.Screen name="Matching" component={Matching} />

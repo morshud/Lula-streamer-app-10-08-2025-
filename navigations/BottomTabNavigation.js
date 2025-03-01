@@ -1,7 +1,7 @@
 import { View, Text, Platform, StyleSheet } from 'react-native';
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Main from '../screens/Main';
+import StreamerProfile from '../screens/StreamerProfile';
 import Users from '../screens/Users';
 import LiveStreaming from '../screens/LiveStreaming';
 import ChatList from '../screens/ChatList';
@@ -67,7 +67,7 @@ const BottomTabNavigation = () => {
         ),
       }}
     >
-      <Tab.Screen
+      {/* <Tab.Screen
         name="Main"
         component={Main}
         options={{
@@ -79,7 +79,7 @@ const BottomTabNavigation = () => {
             />
           ),
         }}
-      />
+      /> */}
       <Tab.Screen
         name="Users"
         component={Users}
@@ -89,6 +89,19 @@ const BottomTabNavigation = () => {
               focused={focused}
               iconName={focused ? 'people' : 'people-outline'}
               label="Users"
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Analytics"
+        component={Analytics}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <TabBarIconWithReanimated
+              focused={focused}
+              iconName={focused ? 'analytics' : 'analytics-outline'}
+              label="Analytics"
             />
           ),
         }}
@@ -128,14 +141,14 @@ const BottomTabNavigation = () => {
         }}
       />
       <Tab.Screen
-        name="Analytics"
-        component={Analytics}
+        name="StreamerProfile"
+        component={StreamerProfile}
         options={{
           tabBarIcon: ({ focused }) => (
             <TabBarIconWithReanimated
               focused={focused}
-              iconName={focused ? 'analytics' : 'analytics-outline'}
-              label="Analytics"
+              iconName={focused ? 'speedometer' : 'speedometer-outline'}
+              label="Profile"
             />
           ),
         }}

@@ -75,7 +75,7 @@ const Users = () => {
             </View>
         </LinearGradient>
     );
-};
+}; 
 
 const styles = StyleSheet.create({
     header: {

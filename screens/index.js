@@ -6,6 +6,7 @@ import Select from "./Select"
 import Login from "./Login"
 import Otp from "./Otp"
 import CreateProfile from "./CreateProfile"
+import Main from "./Main"
 
 import Matching from "./Matching"
 import Explore from "./Explore"
@@ -24,4 +25,4 @@ import EditProfile from "./EditProfile"
 import StreamerProfile from "./StreamerProfile"
 
 
-export { NoInternet, OnBoarding1, Select, Login, Otp, CreateProfile, Explore,  Matching, SelectPartner, StartCalling, EditProfile, StreamerProfile, LiveStreaming, ExploreMatch, Notification, Chat, Setting, About, PrivacyPolicy, TransactionHistory, Plans }
+export { NoInternet, OnBoarding1, Select, Login, Otp, Main, CreateProfile, Explore,  Matching, SelectPartner, StartCalling, EditProfile, StreamerProfile, LiveStreaming, ExploreMatch, Notification, Chat, Setting, About, PrivacyPolicy, TransactionHistory, Plans }

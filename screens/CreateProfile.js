@@ -55,7 +55,7 @@ export default function CreateProfile() {
         if (step < 4) {
             setStep(step + 1);
         } else {
-            navigation.navigate('Main');
+            navigation.navigate('Users');
         }
     };
 
