@@ -1,76 +1,163 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, ImageBackground, TouchableOpacity, TextInput} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import RNPickerSelect from 'react-native-picker-select';
-import { useNavigation } from '@react-navigation/native';
+import React, { useRef, useState } from 'react'
+import { StyleSheet, Text, View, TouchableOpacity, TextInput } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useNavigation } from '@react-navigation/native'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
+import PhoneInput from 'react-native-phone-number-input'
+import { handleError } from '../utils/function'
+import showToast from '../utils/toast'
+import AuthService from '../services/AuthService'
+import SubmitButton from '../components/ui/SubmitButton'
+import { useDispatch } from 'react-redux'
+import Loading from '../components/shared/Loading'
+import { setUser } from '../store/slices/auth'
 
 const Login = () => {
+    const dispatch = useDispatch()
+    const navigation = useNavigation()
+    const phoneInput = useRef()
+    const inputs = useRef([])
+    const [otp, setOtp] = useState(['', '', '', '', '', ''])
 
-    const navigation = useNavigation();
+    const [phoneNumber, setPhoneNumber] = useState('')
+    const [isOtpSent, setIsOtpSent] = useState(false)
+    const [confirmation, setConfirmation] = useState(null)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
-    const [phoneNumber, setPhoneNumber] = useState('');
-    const [selectedCountryCode, setSelectedCountryCode] = useState('+91');
+    const [selectedCountryCode, setSelectedCountryCode] = useState({
+        callingCode: ['91'],
+        cca2: 'IN',
+        currency: ['INR'],
+        flag: 'flag-in',
+        name: 'India',
+        region: 'Asia',
+        subregion: 'Southern Asia',
+    })
 
-    const countryOptions = [
-        { label: '+92', value: '+92' },
-        { label: '+1', value: '+1' },
-        { label: '+44', value: '+44' },
-        { label: '+91', value: '+91' },
-    ];
+    const handleRegister = async () => {
+        try {
+            if (!phoneInput.current?.isValidNumber(phoneNumber)) {
+                showToast('Phone Number is Not Valid')
+                return
+            }
+            setIsSubmitting(true)
+            const fullPhoneNumber = `+${phoneInput.current.state.code}${phoneInput.current.state.number}`
+
+            // Send OTP to the phone number
+            const res = await AuthService.register(fullPhoneNumber)
+
+            if (!res.error) {
+                setIsOtpSent(true) // Set to true after OTP is sent
+                setConfirmation(res.confirmation) // Store confirmation for verification later
+            } else {
+                showToast('Failed to send OTP')
+            }
+        } catch (error) {
+            handleError(error)
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    const handleOtpChange = (text, index) => {
+        const updatedOtp = [...otp]
+        updatedOtp[index] = text
+        setOtp(updatedOtp)
+
+        // Automatically focus on the next input
+        if (text && index < otp.length - 1) {
+            inputs.current[index + 1]?.focus()
+        }
+    }
+
+    const handleBackspace = (text, index) => {
+        if (!text && index > 0) {
+            inputs.current[index - 1]?.focus()
+        }
+    }
+
+    const handleVerifyOtp = async () => {
+        try {
+            if (!otp.every((item) => item)) {
+                showToast('Please enter the OTP')
+                return
+            }
+            setIsSubmitting(true)
+            // Verify the OTP entered by the user
+            const res = await AuthService.verifyOtp(otp.join(''), confirmation)
+
+            if (!res.error) {
+                dispatch(setUser(res.user))
+                showToast('Phone number verified successfully!', 'success')
+                navigation.reset({ index: 0, routes: [{ name: 'CreateProfile' }] })
+            } else {
+                showToast('Failed to verify OTP')
+            }
+        } catch (error) {
+            handleError(error)
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
 
     return (
-            <LinearGradient
-                colors={['rgba(97, 86, 226, 0.9)', 'rgba(171, 73, 161, 0.9)', 'rgba(171, 73, 161, 0.9)', 'rgba(171, 73, 161, 0.9)']}
-                style={styles.gradient}
-            >
-                <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
-                    <MaterialIcons name="keyboard-backspace" size={25} color="white" />
-                </TouchableOpacity>
-                <View style={styles.content}>
-                    <Text style={styles.heading}>Continue with Phone Number </Text>
-                    <Text style={styles.smallText}>A verification code will be sent to this number</Text>
-                    <View style={styles.inputContainer}>
-                        <RNPickerSelect
-                            onValueChange={(value) => setSelectedCountryCode(value)}
-                            items={countryOptions}
-                            style={{
-                                ...pickerSelectStyles,
-                                iconContainer: {
-                                    top: 12,
-                                    right: 22,
-                                },
-                            }}
-                            value={selectedCountryCode}
-                            useNativeAndroidPickerStyle={false}
-                            placeholder={{}}
-                            Icon={() => {
-                                return <Text style={{color: '#000', fontSize: 12}}>▼</Text>;
-                            }}
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Mobile number"
-                            placeholderTextColor="#C1C1C1"
-                            value={phoneNumber}
-                            onChangeText={setPhoneNumber}
-                            keyboardType="phone-pad"
+        <LinearGradient colors={['rgba(97, 86, 226, 0.9)', 'rgba(171, 73, 161, 0.9)', 'rgba(171, 73, 161, 0.9)', 'rgba(171, 73, 161, 0.9)']} style={styles.gradient}>
+            <Loading isVisible={isSubmitting} />
+            <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
+                <MaterialIcons name="keyboard-backspace" size={25} color="white" />
+            </TouchableOpacity>
+            <View style={styles.content}>
+                <Text style={styles.heading}>{isOtpSent ? 'Enter OTP' : 'Continue with Phone Number'}</Text>
+                <Text style={styles.smallText}>{isOtpSent ? 'Please enter the OTP sent to your phone number' : 'A verification code will be sent to this number'}</Text>
+                {!isOtpSent ? (
+                    <View className="my-4">
+                        <PhoneInput
+                            ref={phoneInput}
+                            defaultCode={selectedCountryCode.cca2}
+                            layout="first"
+                            className="w-full mb-4"
+                            onChangeCountry={(country) => setSelectedCountryCode(country)}
+                            onChangeText={(text) => setPhoneNumber(text)}
+                            autoFocus
                         />
                     </View>
-                    <View style={styles.buttonContainer}>
-                        <TouchableOpacity onPress={() => navigation.navigate('Otp')}>
-                            <LinearGradient
-                                colors={['rgba(97, 86, 226, 0.9)', 'rgba(171, 73, 161, 0.9)']}
-                                style={styles.button2}
-                            >
-                                <Text style={styles.button2Text} >Continue </Text>
-                            </LinearGradient>
-                        </TouchableOpacity>
+                ) : (
+                    <View className="my-4">
+                        <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 24 }}>
+                            {otp.map((digit, index) => (
+                                <TextInput
+                                    key={index}
+                                    ref={(ref) => (inputs.current[index] = ref)}
+                                    value={digit}
+                                    onChangeText={(text) => handleOtpChange(text, index)}
+                                    onKeyPress={({ nativeEvent }) => {
+                                        if (nativeEvent.key === 'Backspace') handleBackspace(digit, index)
+                                    }}
+                                    maxLength={1}
+                                    keyboardType="number-pad"
+                                    style={{
+                                        width: 40,
+                                        height: 40,
+                                        textAlign: 'center',
+                                        borderWidth: 1,
+                                        borderColor: '#D1D5DB',
+                                        marginHorizontal: 8,
+                                        borderRadius: 8,
+                                        fontSize: 18,
+                                    }}
+                                />
+                            ))}
+                        </View>
                     </View>
+                )}
+
+                <View style={styles.buttonContainer}>
+                    <SubmitButton title={isOtpSent ? 'Verify OTP' : 'Continue'} onPress={isOtpSent ? handleVerifyOtp : handleRegister} />
                 </View>
-            </LinearGradient>
-    );
-};
+            </View>
+        </LinearGradient>
+    )
+}
 
 const styles = StyleSheet.create({
     gradient: {
@@ -100,21 +187,17 @@ const styles = StyleSheet.create({
         fontSize: 11,
         marginBottom: 15,
     },
-    inputContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
+    input: {
         width: '100%',
-        borderRadius: 10,
-        marginTop: 20,
-        marginBottom: 20,
-        paddingVertical: 3,
-        paddingHorizontal: 5,
+        padding: 10,
         borderWidth: 1,
         borderColor: 'gray',
-    },
-    input: {
-        flex: 1,
+        borderRadius: 10,
         fontSize: 16,
+        marginBottom: 20,
+    },
+    buttonContainer: {
+        marginTop: 20,
     },
     button2: {
         backgroundColor: 'white',
@@ -126,30 +209,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         marginBottom: 10,
     },
-    button2Text: {
-        fontSize: 16,
-        color: '#fff',
-    },
-});
+})
 
-const pickerSelectStyles = StyleSheet.create({
-    inputIOS: {
-        fontSize: 16,
-        paddingHorizontal: 10,
-        paddingVertical: 8,
-        color: '#000',
-        width: 80,
-        borderRadius: 8,
-    },
-    inputAndroid: {
-        fontSize: 16,
-        paddingHorizontal: 10,
-        paddingVertical: 8,
-        color: '#000',
-        width: 80,
-        borderRadius: 8,
-    },
-});
-  
-
-export default Login;
+export default Login

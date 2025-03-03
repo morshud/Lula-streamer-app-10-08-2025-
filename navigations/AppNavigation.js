@@ -9,6 +9,7 @@ import * as SplashScreen from 'expo-splash-screen'
 import { useFonts } from 'expo-font'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { FONTS } from '../constants/fonts'
+import auth from '@react-native-firebase/auth';
 
 import {
     NoInternet,
@@ -43,6 +44,9 @@ const AppNavigation = () => {
     const [isFirstLaunch, setIsFirstLaunch] = useState(null)
     const [fontsLoaded] = useFonts(FONTS)
 
+    const user = auth().currentUser
+console.log(user);
+
     const onLayoutRootView = useCallback(async () => {
         if (fontsLoaded) {
             await SplashScreen.hideAsync()
@@ -72,7 +76,7 @@ const AppNavigation = () => {
                     setIsFirstLaunch(false)
                 }
             } catch (error) {
-                console.error("Error checking first launch: ", error)
+                console.error('Error checking first launch: ', error)
             }
         }
 
@@ -80,9 +84,12 @@ const AppNavigation = () => {
     }, [])
 
     const getinitialScreen = useCallback(() => {
+        if (!isConnected) {
+            return 'NoInternet'
+        }
         let initial = isFirstLaunch ? 'OnBoarding1' : 'Login'
         return initial
-    }, [isFirstLaunch])
+    }, [isFirstLaunch, isConnected])
 
     if (isFirstLaunch === null || !fontsLoaded) {
         return null // Wait until the first launch status is determined and fonts are loaded
@@ -98,28 +105,20 @@ const AppNavigation = () => {
                     <Stack.Screen name="Login" component={Login} />
                     <Stack.Screen name="Otp" component={Otp} />
                     <Stack.Screen name="CreateProfile" component={CreateProfile} />
-                    <Stack.Screen name="Main" component={Main} />
-                    <Stack.Screen name="Users" component={BottomTabNavigation} />
-                    <Stack.Screen name="Analytics" component={BottomTabNavigation} />
                     <Stack.Screen name="Matching" component={Matching} />
                     <Stack.Screen name="SelectPartner" component={SelectPartner} />
                     <Stack.Screen name="StartCalling" component={StartCalling} />
-                    <Stack.Screen name="LiveStreaming" component={LiveStreaming} />
-                    <Stack.Screen name="Feeds" component={BottomTabNavigation} />
                     <Stack.Screen name="Explore" component={Explore} />
-                    <Stack.Screen name="Location" component={BottomTabNavigation} />
                     <Stack.Screen name="ExploreMatch" component={ExploreMatch} />
                     <Stack.Screen name="EditProfile" component={EditProfile} />
                     <Stack.Screen name="Notification" component={Notification} />
-                    <Stack.Screen name="Profile" component={BottomTabNavigation} />
-                    <Stack.Screen name="ChatList" component={BottomTabNavigation} />
                     <Stack.Screen name="Chat" component={Chat} />
                     <Stack.Screen name="Setting" component={Setting} />
                     <Stack.Screen name="About" component={About} />
                     <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
                     <Stack.Screen name="TransactionHistory" component={TransactionHistory} />
                     <Stack.Screen name="Plans" component={Plans} />
-                    <Stack.Screen name="StreamerProfile" component={StreamerProfile} />
+                    <Stack.Screen name="Main" component={BottomTabNavigation} />
                 </Stack.Navigator>
             </NavigationContainer>
         </SafeAreaProvider>

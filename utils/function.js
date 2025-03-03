@@ -1,8 +1,6 @@
 import { Alert } from 'react-native'
 import moment from 'moment'
 import showToast from './toast'
-import * as FileSystem from 'expo-file-system'
-import { FileSystemDownloadResult } from 'expo-file-system'
 
 export function handleError(error) {
     console.log(error)
@@ -80,21 +78,15 @@ export function formatPrice(price, currency = 'USD') {
     return parseFloat(price).toLocaleString('en-US', { style: 'currency', currency: currency })
 }
 
-export const downloadPDF = async (url, fileName) => {
-    try {
-        // Getting the file path for saving
-        const fileUri = FileSystem.documentDirectory + fileName
 
-        // Downloading the file from the URL
-        const downloadResumable = FileSystem.createDownloadResumable(url, fileUri)
+export function generateOtp(length = 6) {
+    const template = '0123456789'; // Template for the OTP characters
+    let otp = ''; // Initialize an empty string for the OTP
 
-        const { uri } = await downloadResumable.downloadAsync()
-
-        // If download is successful, show a success message
-        Alert.alert("Success",'Download Successful')
-    } catch (error) {
-        // Handle errors (e.g. network issues)
-        console.error('Error downloading PDF: ', error)
-        Alert.alert('Download Failed', 'There was an error downloading the PDF.')
+    for (let i = 0; i < length; i++) {
+        // Randomly select a character from the template and append it to the OTP
+        otp += template.charAt(Math.floor(Math.random() * template.length));
     }
+
+    return otp; // Return the generated OTP
 }
