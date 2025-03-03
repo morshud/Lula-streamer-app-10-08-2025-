@@ -89,7 +89,7 @@ const Login = () => {
             if (!res.error) {
                 dispatch(setUser(res.user))
                 showToast('Phone number verified successfully!', 'success')
-                navigation.reset({ index: 0, routes: [{ name: 'CreateProfile' }] })
+                navigation.reset({ index: 0, routes: [{ name: res.user.profileCompleted ? 'Main' : 'CreateProfile' }] })
             } else {
                 showToast('Failed to verify OTP')
             }

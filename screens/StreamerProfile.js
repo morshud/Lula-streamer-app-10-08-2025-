@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import Feather from '@expo/vector-icons/Feather';
-import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { TabView } from 'react-native-tab-view';
-import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
+import React, { useState } from 'react'
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions } from 'react-native'
+import FontAwesome from '@expo/vector-icons/FontAwesome'
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
+import Feather from '@expo/vector-icons/Feather'
+import { useNavigation } from '@react-navigation/native'
+import { LinearGradient } from 'expo-linear-gradient'
+import { TabView } from 'react-native-tab-view'
+import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons'
+import { Entypo } from '@expo/vector-icons'
 
 const Posts = () => {
     return (
@@ -14,7 +15,7 @@ const Posts = () => {
             <Text>Posts Section</Text>
             {/* Add your content for posts here */}
         </View>
-    );
+    )
 }
 
 const Followers = () => {
@@ -23,7 +24,7 @@ const Followers = () => {
             <Text>Followers Section</Text>
             {/* Add your content for followers here */}
         </View>
-    );
+    )
 }
 
 const Followings = () => {
@@ -32,50 +33,49 @@ const Followings = () => {
             <Text>Followings Section</Text>
             {/* Add your content for followings here */}
         </View>
-    );
+    )
 }
 
 const StreamerProfile = () => {
-    const navigation = useNavigation();
-    const layout = useWindowDimensions();
-    const [index, setIndex] = useState(0);
+    const navigation = useNavigation()
+    const layout = useWindowDimensions()
+    const [index, setIndex] = useState(0)
     const [routes] = useState([
         { key: 'POST', title: 'Posts', value: '0', icon: <MaterialCommunityIcons name="post-outline" size={22} color="#555" /> },
         { key: 'FOLLOWER', title: 'Followers', value: '0', icon: <Feather name="users" size={22} color="#555" /> },
         { key: 'FOLLOWING', title: 'Followings', value: '0', icon: <SimpleLineIcons name="user-following" size={22} color="#555" /> },
-    ]);
+    ])
 
     const renderScene = ({ route }) => {
         switch (route.key) {
             case 'POST':
-                return <Posts />;
+                return <Posts />
             case 'FOLLOWER':
-                return <Followers />;
+                return <Followers />
             case 'FOLLOWING':
-                return <Followings />;
+                return <Followings />
             default:
-                return null;
+                return null
         }
-    };
+    }
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <View style={styles.header} className={'mb-5'}>
-                <Text style={styles.mediumText} className={'text-center'}>@Micale clarke</Text>
-                <FontAwesome name="share" size={20} color="black" />
+                <Text style={styles.mediumText} className={'text-center'}>
+                    @Micale clarke
+                </Text>
+                <TouchableOpacity onPress={() => navigation.navigate("Menu")}>
+                    <Entypo name="dots-three-vertical" size={20} color="black" />
+                </TouchableOpacity>
             </View>
 
             <View style={styles.profileHeader}>
-                <Image 
-                    source={require('../assets/images/men.png')}
-                    style={styles.profileImage} 
-                />
+                <Image source={require('../assets/images/men.png')} style={styles.profileImage} />
                 <View style={styles.textContainer}>
                     <Text style={styles.username}>Mr. Perfect billa</Text>
                     <Text style={styles.location}>Pakistan</Text>
-                    <Text style={styles.bio}>
-                        My name is mick & I have been using this application for 2 years. It's a nice application.
-                    </Text>
+                    <Text style={styles.bio}>My name is mick & I have been using this application for 2 years. It's a nice application.</Text>
                 </View>
             </View>
 
@@ -90,47 +90,32 @@ const StreamerProfile = () => {
                         return (
                             <View style={styles.tabBar}>
                                 {props.navigationState.routes.map((route, i) => (
-                                    <TouchableOpacity
-                                        key={i}
-                                        style={[styles.tabItem, index === i && styles.activeTabItem]}
-                                        onPress={() => setIndex(i)}
-                                    >
+                                    <TouchableOpacity key={i} style={[styles.tabItem, index === i && styles.activeTabItem]} onPress={() => setIndex(i)}>
                                         {route.icon}
-                                        <Text style={[styles.coinValue, index === i && styles.activeCoinValue]}>
-                                            {route.value}
-                                        </Text>
-                                        <Text style={[styles.tabLabel, index === i && styles.activeTabLabel]}>
-                                            {route.title}
-                                        </Text>
+                                        <Text style={[styles.coinValue, index === i && styles.activeCoinValue]}>{route.value}</Text>
+                                        <Text style={[styles.tabLabel, index === i && styles.activeTabLabel]}>{route.title}</Text>
                                     </TouchableOpacity>
                                 ))}
-                                <TouchableOpacity
-                                        style={styles.tabItem}
-                                    >
-                                    <Image 
-                                        source={require('../assets/images/coin2.png')}
-                                        style={styles.coinImage} 
-                                    />
+                                <TouchableOpacity style={styles.tabItem}>
+                                    <Image source={require('../assets/images/coin2.png')} style={styles.coinImage} />
                                     <Text style={styles.coinValue}>0</Text>
                                     <Text style={styles.coinLabel}>Coins</Text>
                                 </TouchableOpacity>
                             </View>
-                        );
+                        )
                     }}
                 />
             </View>
 
             <TouchableOpacity onPress={() => navigation.navigate('Main')}>
-                <LinearGradient
-                    colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']}
-                    style={styles.button}
-                >
-                    <Text style={styles.buttonText} className={'text-white text-center'}>Follow</Text>
+                <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={styles.button}>
+                    <Text style={styles.buttonText} className={'text-white text-center'}>
+                        Follow
+                    </Text>
                 </LinearGradient>
             </TouchableOpacity>
-
         </ScrollView>
-    );
+    )
 }
 
 const styles = StyleSheet.create({
@@ -243,6 +228,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#fff',
     },
-});
+})
 
-export default StreamerProfile;
+export default StreamerProfile

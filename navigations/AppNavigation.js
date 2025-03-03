@@ -16,11 +16,9 @@ import {
     Select,
     Login,
     Otp,
-    Main,
     Matching,
     SelectPartner,
     StartCalling,
-    LiveStreaming,
     ExploreMatch,
     Notification,
     Chat,
@@ -31,9 +29,9 @@ import {
     Plans,
     Explore,
     EditProfile,
-    StreamerProfile,
     OnBoarding1,
     CreateProfile,
+    Menu,
 } from '../screens'
 import { handleError } from '../utils/function'
 import AuthService from '../services/AuthService'
@@ -50,7 +48,6 @@ const AppNavigation = () => {
     const [isFirstLaunch, setIsFirstLaunch] = useState(null)
     const [fontsLoaded] = useFonts(FONTS)
     const [isLoading, setIsLoading] = useState(true)
-    console.log(user);
     
     const currentUser = auth().currentUser
 
@@ -139,6 +136,7 @@ const AppNavigation = () => {
                 <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={getinitialScreen()}>
                     <Stack.Screen name="NoInternet" component={NoInternet} />
                     <Stack.Screen name="OnBoarding1" component={OnBoarding1} />
+                    <Stack.Screen name="Menu" component={Menu} />
                     <Stack.Screen name="Select" component={Select} />
                     <Stack.Screen name="Login" component={Login} />
                     <Stack.Screen name="Otp" component={Otp} />
