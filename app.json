@@ -22,12 +22,21 @@
                 "foregroundImage": "./assets/images/adaptive-icon.png",
                 "backgroundColor": "#335EF7"
             },
-            "package": "com.lula.streamer"
+            "package": "com.lula.streamer",
+            "googleServicesFile": "./google-services.json"
         },
         "web": {
             "favicon": "./assets/images/favicon.png"
         },
         "plugins": [
+            [
+                "expo-build-properties",
+                {
+                    "ios": {
+                        "useFrameworks": "static"
+                    }
+                }
+            ],
             [
                 "expo-camera",
                 {

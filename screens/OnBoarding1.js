@@ -8,8 +8,6 @@ import {
     FlatList,
     Animated,
     Image,
-    Link,
-    StatusBar,
     ImageBackground,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
