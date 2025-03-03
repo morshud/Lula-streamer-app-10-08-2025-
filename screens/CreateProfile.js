@@ -1,27 +1,25 @@
-import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    Image,
-    ScrollView,
-    Dimensions,
-} from 'react-native';
+import React, { useState } from 'react'
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Dimensions } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
-import AntDesign from '@expo/vector-icons/AntDesign';
-import { LinearGradient } from 'expo-linear-gradient';
-import * as ImagePicker from 'expo-image-picker';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import AntDesign from '@expo/vector-icons/AntDesign'
+import { LinearGradient } from 'expo-linear-gradient'
+import * as ImagePicker from 'expo-image-picker'
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5'
+import SubmitButton from '../components/ui/SubmitButton'
+import { handleError } from '../utils/function'
+import { useDispatch, useSelector } from 'react-redux'
+import AuthService from '../services/AuthService'
+import showToast from '../utils/toast'
+import { setUser } from '../store/slices/auth'
+import Loading from '../components/shared/Loading'
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get('window')
 
 const genderOptions = [
     { id: 'male', label: 'Male', icon: '👨' },
     { id: 'female', label: 'Female', icon: '👩' },
     { id: 'other', label: 'Other', icon: '👤' },
-];
+]
 
 const languages = [
     { id: 'english', name: 'English', native: 'English' },
@@ -33,31 +31,62 @@ const languages = [
     { id: 'bengali', name: 'Bengali', native: 'বাংলা' },
     { id: 'gujarati', name: 'Gujarati', native: 'ગુજરાતી' },
     { id: 'malayalam', name: 'Malayalam', native: 'മലയാളം' },
-];
+]
 
-const years = Array.from({ length: 10 }, (_, i) => 2015 - i);
-const months = Array.from({ length: 12 }, (_, i) => i + 1);
-const days = Array.from({ length: 31 }, (_, i) => i + 1);
+const currentYear = new Date().getFullYear()
+const years = Array.from({ length: currentYear - 18 - 1950 + 1 }, (_, i) => 1950 + i).reverse()
+const months = Array.from({ length: 12 }, (_, i) => i + 1)
+const days = Array.from({ length: 31 }, (_, i) => i + 1)
 
 export default function CreateProfile() {
+    const dispatch = useDispatch()
+    const { user } = useSelector((state) => state.auth)
     const navigation = useNavigation()
 
-    const [step, setStep] = useState(0);
-    const [name, setName] = useState('');
-    const [gender, setGender] = useState('');
-    const [birthYear, setBirthYear] = useState('');
-    const [birthMonth, setBirthMonth] = useState('');
-    const [birthDay, setBirthDay] = useState('');
-    const [selectedLanguages, setSelectedLanguages] = useState([]);
-    const [profileImage, setProfileImage] = useState('https://final-avrp.ellipticals.website/assets/images/logo/logo-white.png');
+    const [formData, setFormData] = useState({
+        name: '',
+        gender: '',
+        birthYear: '',
+        birthMonth: '',
+        birthDay: '',
+        selectedLanguages: [],
+    })
 
-    const handleNext = () => {
-        if (step < 4) {
-            setStep(step + 1);
-        } else {
-            navigation.navigate('Main');
+    const [step, setStep] = useState(0)
+    const [profileImage, setProfileImage] = useState('')
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    const handleNext = async () => {
+        try {
+            if (step < 4) {
+                setStep(step + 1)
+                return
+            }
+            setIsSubmitting(true)
+            const profileUri = await AuthService.uploadFiles(profileImage,"lula/streamer/profile")
+
+            const body =  {
+                ...formData,
+                profileUri,
+                profileCompleted:true,
+            }
+
+            const res = await AuthService.update(user.id,body)
+
+            if (res.success) {
+                const res = await AuthService.getUser(user.id)
+                dispatch(setUser(res.user))
+                showToast(res.message,"success")
+                navigation.reset({index:0,routes:[{name:"Main"}]})
+            }else{
+                showToast(res.message)
+            }
+        } catch (error) {
+            handleError(error)
+        }finally{
+            setIsSubmitting(false)
         }
-    };
+    }
 
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -65,38 +94,42 @@ export default function CreateProfile() {
             allowsEditing: true,
             aspect: [1, 1],
             quality: 1,
-        });
-    
-        if (!result.canceled) {
-            console.log('Selected image URI:', result.assets[0].uri);
-            setProfileImage(result.assets[0].uri);
-        } else {
-            console.log('Image selection was canceled');
-        }
-    };
+        })
 
-    const handleLanguageSelect = (languageId) => {
-        setSelectedLanguages((prev) => {
-            if (prev.includes(languageId)) {
-                return prev.filter(id => id !== languageId);
-            }
-            return [...prev, languageId];
-        });
-    };
+        if (!result.canceled) {
+            console.log('Selected image URI:', result.assets[0].uri)
+            setProfileImage(result.assets[0].uri)
+        } else {
+            console.log('Image selection was canceled')
+        }
+    }
+
+    const handleChange = (field, value) => {
+        if (field === 'selectedLanguages') {
+            // Handle language selection toggle
+            setFormData((prevState) => {
+                const updatedLanguages = prevState.selectedLanguages.includes(value)
+                    ? prevState.selectedLanguages.filter((lang) => lang !== value)
+                    : [...prevState.selectedLanguages, value]
+
+                return { ...prevState, selectedLanguages: updatedLanguages }
+            })
+        } else {
+            // Handle form input fields
+            setFormData((prevState) => ({
+                ...prevState,
+                [field]: value,
+            }))
+        }
+    }
 
     const renderNameStep = () => (
         <View style={styles.stepContainer}>
             <Text style={styles.waveEmoji}>👋</Text>
             <Text style={styles.title}>Hello!</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Enter Your Name"
-                value={name}
-                onChangeText={setName}
-                placeholderTextColor="#666"
-            />
+            <TextInput style={styles.input} placeholder="Enter Your Name" value={formData.name} onChangeText={(text) => handleChange('name', text)} placeholderTextColor="#666" />
         </View>
-    );
+    )
 
     const renderGenderStep = () => (
         <View style={styles.stepContainer}>
@@ -106,77 +139,31 @@ export default function CreateProfile() {
                 {genderOptions.map((option) => (
                     <TouchableOpacity
                         key={option.id}
-                        style={[
-                            styles.genderOption,
-                            gender === option.id && styles.genderOptionSelected,
-                        ]}
-                        onPress={() => setGender(option.id)}
+                        style={[styles.genderOption, formData.gender === option.id && styles.genderOptionSelected]}
+                        onPress={() => handleChange('gender', option.id)}
                     >
                         <Text style={styles.genderIcon}>{option.icon}</Text>
-                        <Text style={[styles.genderLabel, gender === option.id && styles.genderLabelSelected]}>{option.label}</Text>
+                        <Text style={[styles.genderLabel, formData.gender === option.id && styles.genderLabelSelected]}>{option.label}</Text>
                     </TouchableOpacity>
                 ))}
             </View>
         </View>
-    );
+    )
 
     const renderAgeStep = () => (
         <View style={styles.stepContainer}>
             <Text style={styles.title2}>How Old Are You?</Text>
             <Text style={styles.subtitle}>We will make sure you get better and personalized results</Text>
-            <LinearGradient
-                colors={['rgba(97, 86, 226, 0.9)', 'rgba(171, 73, 161, 0.9)']}
-                style={styles.datePickerContainer}
-            >
+            <LinearGradient colors={['rgba(97, 86, 226, 0.9)', 'rgba(171, 73, 161, 0.9)']} style={styles.datePickerContainer}>
                 <ScrollView showsVerticalScrollIndicator={false}>
                     <View style={styles.dateColumn}>
                         {days.map((day) => (
                             <TouchableOpacity
                                 key={day}
-                                style={[
-                                    styles.dateOption,
-                                    birthDay === day.toString() && styles.dateOptionSelected,
-                                ]}
-                                onPress={() => setBirthDay(day.toString())}
+                                style={[styles.dateOption, formData.birthDay === day.toString() && styles.dateOptionSelected]}
+                                onPress={() => handleChange('birthDay', day.toString())}
                             >
-                                <Text style={[
-                                    styles.dateText,
-                                    birthDay === day.toString() && styles.dateTextSelected,
-                                ]}>{day}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                    <View style={styles.dateColumn}>
-                        {months.map((month) => (
-                            <TouchableOpacity
-                                key={month}
-                                style={[
-                                    styles.dateOption,
-                                    birthMonth === month.toString() && styles.dateOptionSelected,
-                                ]}
-                                onPress={() => setBirthMonth(month.toString())}
-                            >
-                                <Text style={[
-                                    styles.dateText,
-                                    birthMonth === month.toString() && styles.dateTextSelected,
-                                ]}>{month}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                    <View style={styles.dateColumn}>
-                        {years.map((year) => (
-                            <TouchableOpacity
-                                key={year}
-                                style={[
-                                    styles.dateOption,
-                                    birthYear === year.toString() && styles.dateOptionSelected,
-                                ]}
-                                onPress={() => setBirthYear(year.toString())}
-                            >
-                                <Text style={[
-                                    styles.dateText,
-                                    birthYear === year.toString() && styles.dateTextSelected,
-                                ]}>{year}</Text>
+                                <Text style={[styles.dateText, formData.birthDay === day.toString() && styles.dateTextSelected]}>{day}</Text>
                             </TouchableOpacity>
                         ))}
                     </View>
@@ -186,16 +173,10 @@ export default function CreateProfile() {
                         {months.map((month) => (
                             <TouchableOpacity
                                 key={month}
-                                style={[
-                                    styles.dateOption,
-                                    birthMonth === month.toString() && styles.dateOptionSelected,
-                                ]}
-                                onPress={() => setBirthMonth(month.toString())}
+                                style={[styles.dateOption, formData.birthMonth === month.toString() && styles.dateOptionSelected]}
+                                onPress={() => handleChange('birthMonth', month.toString())}
                             >
-                                <Text style={[
-                                    styles.dateText,
-                                    birthMonth === month.toString() && styles.dateTextSelected,
-                                ]}>{month}</Text>
+                                <Text style={[styles.dateText, formData.birthMonth === month.toString() && styles.dateTextSelected]}>{month}</Text>
                             </TouchableOpacity>
                         ))}
                     </View>
@@ -205,16 +186,10 @@ export default function CreateProfile() {
                         {years.map((year) => (
                             <TouchableOpacity
                                 key={year}
-                                style={[
-                                    styles.dateOption,
-                                    birthYear === year.toString() && styles.dateOptionSelected,
-                                ]}
-                                onPress={() => setBirthYear(year.toString())}
+                                style={[styles.dateOption, formData.birthYear === year.toString() && styles.dateOptionSelected]}
+                                onPress={() => handleChange('birthYear', year.toString())}
                             >
-                                <Text style={[
-                                    styles.dateText,
-                                    birthYear === year.toString() && styles.dateTextSelected,
-                                ]}>{year}</Text>
+                                <Text style={[styles.dateText, formData.birthYear === year.toString() && styles.dateTextSelected]}>{year}</Text>
                             </TouchableOpacity>
                         ))}
                     </View>
@@ -222,7 +197,7 @@ export default function CreateProfile() {
             </LinearGradient>
             <Text style={styles.ageNote}>Not allowed to use under 18</Text>
         </View>
-    );
+    )
 
     const renderLanguageStep = () => (
         <View style={styles.stepContainer}>
@@ -232,19 +207,16 @@ export default function CreateProfile() {
                 {languages.map((language) => (
                     <TouchableOpacity
                         key={language.id}
-                        style={[
-                            styles.languageOption,
-                            selectedLanguages.includes(language.id) && styles.languageOptionSelected,
-                        ]}
-                        onPress={() => handleLanguageSelect(language.id)}
+                        style={[styles.languageOption, formData.selectedLanguages.includes(language.id) && styles.languageOptionSelected]}
+                        onPress={() => handleChange('selectedLanguages', language.id)}
                     >
-                        <Text style={[styles.languageName, selectedLanguages.includes(language.id) && styles.languageNameSelected,]}>{language.name}</Text>
-                        <Text style={[styles.languageNative, selectedLanguages.includes(language.id) && styles.languageNativeSelected,]}>{language.native}</Text>
+                        <Text style={[styles.languageName, formData.selectedLanguages.includes(language.id) && styles.languageNameSelected]}>{language.name}</Text>
+                        <Text style={[styles.languageNative, formData.selectedLanguages.includes(language.id) && styles.languageNativeSelected]}>{language.native}</Text>
                     </TouchableOpacity>
                 ))}
             </View>
         </View>
-    );
+    )
 
     const renderProfileStep = () => (
         <View style={styles.stepContainer}>
@@ -252,79 +224,66 @@ export default function CreateProfile() {
             <Text style={styles.subtitle}>Upload your profile picture</Text>
             <View style={styles.profileImageContainer}>
                 <View style={styles.imageWrapper}>
-                    <Image
-                        source={require('../assets/images/women.png')}
-                        style={styles.profileImage}
-                    />
+                    <Image source={profileImage ? { uri: profileImage } : require('../assets/images/women.png')} style={styles.profileImage} />
                     <TouchableOpacity onPress={pickImage}>
-                        <LinearGradient
-                            colors={['rgba(97, 86, 226, 0.9)', 'rgba(171, 73, 161, 0.9)']}
-                            style={styles.editButton}
-                        >
+                        <LinearGradient colors={['rgba(97, 86, 226, 0.9)', 'rgba(171, 73, 161, 0.9)']} style={styles.editButton}>
                             <FontAwesome5 name="pencil-alt" size={18} color="#fff" />
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>
             </View>
         </View>
-    );
-    
-    // const renderFinalStep = () => (
-    //     <View style={styles.stepContainer}>
-    //         <Image
-    //             source={require('../assets/images/welcome.png')}
-    //             style={styles.welcomeImage}
-    //         />
-    //         <Text style={styles.title3}>Welcome</Text>
-    //         <Text style={styles.subtitle}>Welcome! Your profile is complete. Enjoy a personalized experience ahead!</Text>
-    //         <View style={styles.profileImageContainer}>
-    //             <View style={styles.imageWrapper}>
-    //                 <Image
-    //                     source={require('../assets/images/women.png')}
-    //                     style={styles.profileImage}
-    //                 />
-    //             </View>
-    //         </View>
-    //     </View>
-    // );
+    )
+
+    const isNextButtonDisabled = () => {
+        if (step === 0 && !formData.name) {
+            return true
+        }
+        if (step === 1 && !formData.gender) {
+            return true
+        }
+        if (step === 2 && (!formData.birthDay || !formData.birthMonth || !formData.birthYear)) {
+            return true
+        }
+        if (step === 3 && formData.selectedLanguages.length === 0) {
+            return true
+        }
+        if (step === 4 && !profileImage) {
+            return true
+        }
+        return false
+    }
 
     const renderStep = () => {
         switch (step) {
             case 0:
-                return renderNameStep();
+                return renderNameStep()
             case 1:
-                return renderGenderStep();
+                return renderGenderStep()
             case 2:
-                return renderAgeStep();
+                return renderAgeStep()
             case 3:
-                return renderLanguageStep();
+                return renderLanguageStep()
             case 4:
-                return renderProfileStep();
+                return renderProfileStep()
             default:
-                return null;
+                return null
         }
-    };
+    }
 
     return (
         <View style={styles.container}>
+            <Loading isVisible={isSubmitting}/>
             <TouchableOpacity style={styles.backButton} onPress={() => setStep(Math.max(0, step - 1))}>
-                <Text style={styles.backButtonText}><AntDesign name="arrowleft" size={20} color="black" /></Text>
+                <Text style={styles.backButtonText}>
+                    <AntDesign name="arrowleft" size={20} color="black" />
+                </Text>
             </TouchableOpacity>
 
             {renderStep()}
-
-            <TouchableOpacity
-                onPress={handleNext}
-            >
-                <LinearGradient
-                    colors={['rgba(97, 86, 226, 0.9)', 'rgba(171, 73, 161, 0.9)']}
-                    style={styles.nextButton}
-                >
-                    <Text style={styles.nextButtonText}>Next</Text>
-                </LinearGradient>
-            </TouchableOpacity>
+            <SubmitButton loading={isSubmitting} onPress={handleNext} title={'Next'} disabled={isNextButtonDisabled()} />
         </View>
-    );
+    )
 }
 
 const styles = StyleSheet.create({
@@ -516,4 +475,4 @@ const styles = StyleSheet.create({
     languageNativeSelected: {
         color: '#fff',
     },
-});
+})

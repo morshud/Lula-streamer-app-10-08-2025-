@@ -3,13 +3,13 @@ import { NavigationContainer } from '@react-navigation/native'
 import React, { useState, useEffect, useCallback } from 'react'
 import NetInfo from '@react-native-community/netinfo'
 import BottomTabNavigation from './BottomTabNavigation'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as SplashScreen from 'expo-splash-screen'
 import { useFonts } from 'expo-font'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { FONTS } from '../constants/fonts'
-import auth from '@react-native-firebase/auth';
+import auth from '@react-native-firebase/auth'
 
 import {
     NoInternet,
@@ -35,17 +35,24 @@ import {
     OnBoarding1,
     CreateProfile,
 } from '../screens'
+import { handleError } from '../utils/function'
+import AuthService from '../services/AuthService'
+import showToast from '../utils/toast'
+import { setUser } from '../store/slices/auth'
 
 SplashScreen.preventAutoHideAsync()
 const Stack = createNativeStackNavigator()
 
 const AppNavigation = () => {
+    const { user } = useSelector((state) => state.auth)
+    const dispatch = useDispatch()
     const [isConnected, setIsConnected] = useState(true)
     const [isFirstLaunch, setIsFirstLaunch] = useState(null)
     const [fontsLoaded] = useFonts(FONTS)
-
-    const user = auth().currentUser
-console.log(user);
+    const [isLoading, setIsLoading] = useState(true)
+    console.log(user);
+    
+    const currentUser = auth().currentUser
 
     const onLayoutRootView = useCallback(async () => {
         if (fontsLoaded) {
@@ -61,6 +68,29 @@ console.log(user);
             unsubscribe()
         }
     }, [])
+
+    useEffect(() => {
+        if (!currentUser) {
+            setIsLoading(false)
+            return
+        }
+
+        const getUser = async () => {
+            try {
+                const res = await AuthService.getUser(currentUser.uid)
+                if (!res.error) {
+                    dispatch(setUser(res.user))
+                } else {
+                    showToast(res.message)
+                }
+            } catch (error) {
+                handleError(error)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        getUser()
+    }, [currentUser])
 
     // Check if it's the first launch
     useEffect(() => {
@@ -88,10 +118,18 @@ console.log(user);
             return 'NoInternet'
         }
         let initial = isFirstLaunch ? 'OnBoarding1' : 'Login'
-        return initial
-    }, [isFirstLaunch, isConnected])
 
-    if (isFirstLaunch === null || !fontsLoaded) {
+        if (user && user.profileCompleted) {
+            initial = "Main"
+        }
+        if (user && !user.profileCompleted) {
+            initial = "CreateProfile"
+        }
+
+        return initial
+    }, [isFirstLaunch, isConnected, user])
+
+    if (isFirstLaunch === null || !fontsLoaded || isLoading) {
         return null // Wait until the first launch status is determined and fonts are loaded
     }
 
