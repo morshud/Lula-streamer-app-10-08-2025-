@@ -38,7 +38,6 @@ const MenuScreen = () => {
             {/* Menu Items */}
             <View className="flex-1 px-4 mt-4">
                 {[
-                    { label: 'Change password', withArrow: true, link: '', },
                     { label: 'Update Profile', withArrow: true, link: '', },
                 ].map((item, index) => {
 
