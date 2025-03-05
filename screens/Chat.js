@@ -1,139 +1,82 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity, Image, Dimensions, Modal } from 'react-native';
-import avatar from '../assets/images/men.png';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
-import { Entypo } from '@expo/vector-icons';
+import React, { useState, useEffect } from 'react'
+import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity, Image, Dimensions, Modal } from 'react-native'
+import avatar from '../assets/images/men.png'
+import FontAwesome from '@expo/vector-icons/FontAwesome'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useNavigation, useRoute } from '@react-navigation/native'
+import ChatService from '../services/ChatService'
+import { handleError } from '../utils/function'
+import { useSelector } from 'react-redux'
 
-const messages = [
-    {
-        id: '1',
-        text: 'Lorem Ipsum Dolor Sit Amet, Consectetur Adipiscing',
-        sender: 'user1',
-    },
-    {
-        id: '2',
-        text: 'Sed Do eiusmod Tempor Incididunt Ut Labore Et',
-        sender: 'user2',
-    },
-    {
-        id: '3',
-        text: 'Ok',
-        sender: 'user1',
-    },
-    {
-        id: '1',
-        text: 'Lorem Ipsum Dolor Sit Amet, Consectetur Adipiscing',
-        sender: 'user1',
-    },
-    {
-        id: '2',
-        text: 'Sed Do eiusmod Tempor Incididunt Ut Labore Et',
-        sender: 'user2',
-    },
-    {
-        id: '3',
-        text: 'Ok',
-        sender: 'user1',
-    },
-    {
-        id: '1',
-        text: 'Lorem Ipsum Dolor Sit Amet, Consectetur Adipiscing',
-        sender: 'user1',
-    },
-    {
-        id: '2',
-        text: 'Sed Do eiusmod Tempor Incididunt Ut Labore Et',
-        sender: 'user2',
-    },
-    {
-        id: '3',
-        text: 'Ok',
-        sender: 'user1',
-    },
-    {
-        id: '1',
-        text: 'Lorem Ipsum Dolor Sit Amet, Consectetur Adipiscing',
-        sender: 'user1',
-    },
-    {
-        id: '2',
-        text: 'Sed Do eiusmod Tempor Incididunt Ut Labore Et',
-        sender: 'user2',
-    },
-    {
-        id: '3',
-        text: 'Ok',
-        sender: 'user1',
-    },
-    {
-        id: '1',
-        text: 'Lorem Ipsum Dolor Sit Amet, Consectetur Adipiscing',
-        sender: 'user1',
-    },
-    {
-        id: '2',
-        text: 'Sed Do eiusmod Tempor Incididunt Ut Labore Et',
-        sender: 'user2',
-    },
-    {
-        id: '3',
-        text: 'Ok',
-        sender: 'user1',
-    },
-];
-const { width: screenWidth } = Dimensions.get('window');
-const { height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window')
 
 const Chat = () => {
-    const navigation = useNavigation();
-    const [modalVisible, setModalVisible] = useState(false);
-    useEffect(() => {
-        const model = setTimeout(() => {
-            setModalVisible(true);
-        }, 2000);
+    const { user } = useSelector((state) => state.auth)
+    const {
+        params: { chatId },
+    } = useRoute()
+    const [messages, setMessages] = useState([])
+    const [message, setMessage] = useState('')
+    const navigation = useNavigation()
 
-        return () => clearTimeout(model);
-    }, []);
+    useEffect(() => {
+        const unsubscribe = ChatService.listenToMessages(chatId, (messages) => {
+            setMessages(messages)
+        })
+        return () => {
+            unsubscribe()
+        }
+    }, [])
+
+    const handleSendMessage = async() => {
+        try {
+            if (!message.trim()) {
+                return
+            }
+
+            const body = {
+                attachments: [],
+                content: message,
+                read: false,
+                sender: 'STREAMER',
+                senderId: user.id,
+            }
+
+            setMessage("")
+
+            await ChatService.sendMessage(chatId,body)
+
+        } catch (error) {
+            handleError(error)
+        }
+    }
 
     const renderItem = ({ item }) => (
-        <View style={[styles.messageContainer, item.sender === 'user1' ? styles.user1Message : styles.user2Message]}>
-            <Text style={styles.messageText}>{item.text}</Text>
+        <View style={[styles.messageContainer, item.sender === 'USER' ? styles.user1Message : styles.user2Message]}>
+            <Text style={styles.messageText}>{item.content}</Text>
         </View>
-    );
+    )
 
     return (
-        <LinearGradient
-            colors={['rgba(171, 73, 161, 0.9)', 'rgba(97, 86, 226, 0.9)', ]}
-            style={styles.container}
-        >
+        <LinearGradient colors={['rgba(171, 73, 161, 0.9)', 'rgba(97, 86, 226, 0.9)']} style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.headerText}>Messages</Text>
                 <Image source={avatar} style={styles.image} />
             </View>
             <View style={styles.content}>
-                <FlatList
-                    data={messages}
-                    renderItem={renderItem}
-                    keyExtractor={(item) => item.id}
-                    style={styles.messageList}
-                />
+                <FlatList data={messages} renderItem={renderItem} keyExtractor={(item) => item.id} style={styles.messageList} />
                 <View style={styles.inputContainer}>
-                    <TextInput style={styles.input} placeholder="Type message here..." />
-                    <TouchableOpacity >
-                        <LinearGradient
-                            colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)' ]}
-                            style={styles.sendButton}
-                        >
+                    <TextInput style={styles.input} placeholder="Type message here..." value={message} onChangeText={(text) => setMessage(text)} onSubmitEditing={handleSendMessage} />
+                    <TouchableOpacity onPress={handleSendMessage}>
+                        <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={styles.sendButton}>
                             <FontAwesome name="send" size={20} color="white" />
-                        </LinearGradient>  
+                        </LinearGradient>
                     </TouchableOpacity>
                 </View>
             </View>
         </LinearGradient>
-    );
-};
+    )
+}
 
 const styles = StyleSheet.create({
     container: {
@@ -220,6 +163,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-});
+})
 
-export default Chat;
+export default Chat

@@ -28,7 +28,6 @@ class UserService extends BaseService {
             }
 
             const snapshot = await query.get();
-            console.log(snapshot.empty);
             
             if (snapshot.empty) {
                 return { users: [], lastVisible: null }; // No more users to fetch

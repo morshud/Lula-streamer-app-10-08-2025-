@@ -18,7 +18,15 @@ class BaseService {
         return { error: true, message }
     }
 
-    toFirestore(data) {
+    toFirestore(data, updatedAt = false) {
+        if (updatedAt) {
+            return {
+                ...data,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            }
+        }
+
         return {
             ...data,
             createdAt: serverTimestamp(),
@@ -30,7 +38,7 @@ class BaseService {
         return {
             ...data,
             id: doc.id,
-            createdAt: data.createdAt.toDate().toString(),
+            createdAt: data?.createdAt?.toDate().toString(),
         }
     }
 
@@ -71,7 +79,7 @@ class BaseService {
         try {
             const filename = file.substring(file.lastIndexOf('/') + 1)
             const storageRef = this.storage.ref(`${path}/${Date.now()}-${filename.replaceAll(' ', '-')}`)
-            const uploadTask = storageRef.putFile(file) 
+            const uploadTask = storageRef.putFile(file)
 
             await uploadTask
             const downloadURL = await storageRef.getDownloadURL()

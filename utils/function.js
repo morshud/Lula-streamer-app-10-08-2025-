@@ -78,15 +78,18 @@ export function formatPrice(price, currency = 'USD') {
     return parseFloat(price).toLocaleString('en-US', { style: 'currency', currency: currency })
 }
 
-
 export function generateOtp(length = 6) {
-    const template = '0123456789'; // Template for the OTP characters
-    let otp = ''; // Initialize an empty string for the OTP
+    const template = '0123456789' // Template for the OTP characters
+    let otp = '' // Initialize an empty string for the OTP
 
     for (let i = 0; i < length; i++) {
         // Randomly select a character from the template and append it to the OTP
-        otp += template.charAt(Math.floor(Math.random() * template.length));
+        otp += template.charAt(Math.floor(Math.random() * template.length))
     }
 
-    return otp; // Return the generated OTP
+    return otp // Return the generated OTP
+}
+
+export function formatDate(date, format = 'hh:mm A') {
+    return moment(date).format(format)
 }

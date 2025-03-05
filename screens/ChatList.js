@@ -1,27 +1,67 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Image, useWindowDimensions, TouchableOpacity } from 'react-native';
-import avatar from '../assets/images/men.png';
-import { TabView } from 'react-native-tab-view';
-import { LinearGradient } from 'expo-linear-gradient';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { useNavigation } from '@react-navigation/native';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import React, { useState, useEffect } from 'react'
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import { LinearGradient } from 'expo-linear-gradient'
+import MaterialIcons from '@expo/vector-icons/MaterialIcons'
+import avatar from '../assets/images/men.png' // Your default avatar image
 
+// Import your UserService (or the service you use to fetch chat data)
+import ChatService from '../services/ChatService' // assuming ChatService has getChatList method
+import { useSelector } from 'react-redux'
+import { formatDate } from '../utils/function'
 
 const ChatList = () => {
-    const navigation = useNavigation();
-    const messages = [
-        { id: '1', name: 'Official', message: 'kriti husain likes you!', time: '12:10', image: avatar },
-        { id: '2', name: 'Official', message: 'kriti husain likes you!', time: '12:10', image: avatar },
-        { id: '3', name: 'Official', message: 'kriti husain likes you!', time: '12:10', image: avatar },
-        { id: '4', name: 'Official', message: 'kriti husain likes you!', time: '12:10', image: avatar },
-    ];
+    const { user } = useSelector((state) => state.auth)
+    const navigation = useNavigation()
+    const [messages, setMessages] = useState([]) // Store messages
+    const [lastVisible, setLastVisible] = useState(null) // Store last visible for pagination
+    const [loading, setLoading] = useState(false) // For loading indicator
+    const [refreshing, setRefreshing] = useState(false)
+    // Fetch chats when component mounts or when pagination triggers
+    const fetchChats = async (reset = false) => {
+        if (loading) return // Prevent multiple requests simultaneously
+        setLoading(true)
+
+        try {
+            const result = await ChatService.getChatList(10, reset ? null : lastVisible, user.id) // replace 'streamerId' with actual streamer ID
+            console.log(result)
+
+            setMessages((prevMessages) => (reset ? result.chats : [...prevMessages, ...result.chats])) // Append new messages to the existing list
+            setLastVisible(result.lastVisible) // Update lastVisible for pagination
+        } catch (error) {
+            console.error('Error fetching chats:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleRefresh = async () => {
+        setRefreshing(true)
+        setMessages([])
+        setLastVisible(null)
+        await fetchUsers(true)
+        setRefreshing(false)
+    }
+
+    // Trigger fetchChats when component mounts
+    useEffect(() => {
+        fetchChats()
+    }, [])
+
+    // Render each chat item in FlatList
+    const renderChatItem = ({ item }) => (
+        <TouchableOpacity style={styles.chatItem} onPress={() => navigation.navigate('Chat', { chatId: item.id })}>
+            <Image source={item.user?.profileUri ? { uri: item.user.profileUri } : require('../assets/images/avatar.png')} style={styles.image} />
+            <View style={styles.textContainer}>
+                <Text style={styles.name}>{item.user?.name || 'Anonymose User'}</Text>
+                <Text style={styles.message}>{item.lastMessage}</Text>
+            </View>
+            <Text style={styles.time}>{formatDate(item.updatedAt)}</Text>
+        </TouchableOpacity>
+    )
 
     return (
-        <LinearGradient
-            colors={['rgba(171, 73, 161, 0.9)', 'rgba(97, 86, 226, 0.9)', ]}
-            style={styles.gradient}
-        >
+        <LinearGradient colors={['rgba(171, 73, 161, 0.9)', 'rgba(97, 86, 226, 0.9)']} style={styles.gradient}>
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Chats</Text>
                 <View style={styles.headerIcons}>
@@ -29,32 +69,31 @@ const ChatList = () => {
                         <MaterialIcons name="analytics" size={29} color="#fff" />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => navigation.navigate('StreamerProfile')}>
-                        <Image source={require('../assets/images/men.png')} style={styles.headerIconsImage} />
+                        <Image source={avatar} style={styles.headerIconsImage} />
                     </TouchableOpacity>
                 </View>
             </View>
             <View style={styles.content}>
                 <FlatList
                     data={messages}
-                    keyExtractor={item => item.id}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderChatItem}
+                    // onEndReached={fetchChats} // Load more chats when reaching the end
+                    // onEndReachedThreshold={0.5} // Threshold for triggering `onEndReached`
                     style={styles.messagesContent}
-                    renderItem={({ item }) => (
-                        <TouchableOpacity style={styles.chatItem} onPress={() => navigation.navigate('Chat')}>
-                            <Image source={item.image} style={styles.image} />
-                            <View style={styles.textContainer}>
-                                <Text style={styles.name}>{item.name}</Text>
-                                <Text style={styles.message}>{item.message}</Text>
-                            </View>
-                            <Text style={styles.time}>{item.time}</Text>
-                        </TouchableOpacity>
-                    )}
+                    ListFooterComponent={loading ? <Text>Loading...</Text> : null} // Show loading indicator while fetching
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
                 />
             </View>
         </LinearGradient>
-    );
-};
+    )
+}
 
 const styles = StyleSheet.create({
+    gradient: {
+        flex: 1,
+    },
     header: {
         width: '100%',
         paddingHorizontal: 10,
@@ -87,34 +126,12 @@ const styles = StyleSheet.create({
         height: '100%',
         borderTopRightRadius: 15,
     },
-    tabs: {
-        backgroundColor: '#fff',
-    },
-    tabBar: {
-        flexDirection: 'row',
-        marginBottom: 20,
-    },
-    tabItem: {
-        flex: 1,
-        alignItems: 'center',
-        paddingVertical: 10,
-    },
-    activeTab: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#6200ee',
-    },
-    tabText: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: '#aaa',
-    },
-    activeTabText: {
-        color: '#6200ee',
-    },
     chatItem: {
         flexDirection: 'row',
         padding: 10,
         alignItems: 'center',
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
     },
     image: {
         width: 40,
@@ -126,72 +143,23 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     name: {
-        fontWeight: 500,
+        fontWeight: 'bold',
+        fontSize: 14,
     },
     message: {
         color: 'gray',
-        fontWeight: 300,
         fontSize: 12,
     },
     time: {
         color: 'gray',
         fontSize: 12,
     },
-    centeredText: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
-
-
-
-    likeItem: {
-        flexDirection: 'row',
-        marginHorizontal: 10,
-        marginVertical: 5,
-        borderWidth: 1,
-        borderRadius: 10,
-        borderColor: '#EEE',
-        padding: 8,
-        alignItems: 'center',
-    },
-    imageLike: {
-        width: 80,
-        height: 80,
-        borderRadius: 5,
-    },
-    textContainer: {
-        marginLeft: 10,
+    messagesContent: {
         flex: 1,
     },
-    nameLike: {
-        fontWeight: 'bold',
-        fontSize: 16,
+    headerIconsTab: {
+        marginRight: 10,
     },
-    location: {
-        color: 'gray',
-        fontSize: 11,
-    },
-    statusContainer: {
-        borderRadius: 2,
-        width: 45,
-        height: 15,
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    status: {
-        color: 'white',
-        fontSize: 9,
-    },
-    videoIcon: {
-        marginLeft: 10,
-        padding: 8,
-        backgroundColor: '#6200EE',
-        borderRadius: 20,
-    },
+})
 
-});
-
-export default ChatList;
+export default ChatList

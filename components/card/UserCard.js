@@ -1,0 +1,109 @@
+import { StyleSheet, Text, View, Image, TouchableOpacity,PermissionsAndroid } from 'react-native'
+import React from 'react'
+import { LinearGradient } from 'expo-linear-gradient'
+import Feather from '@expo/vector-icons/Feather'
+import { useSelector } from 'react-redux'
+import { useNavigation } from '@react-navigation/native'
+import ChatService from '../../services/ChatService'
+import showToast from '../../utils/toast'
+import { handleError } from '../../utils/function'
+
+const UserCard = ({ item }) => {
+    const { user } = useSelector((state) => state.auth)
+    const navigation = useNavigation()
+    const handleChat = async () => {
+        try {
+            const res = await ChatService.createChat(item.id, user.id)
+            console.log(res)
+
+            if (!res.error) {
+                navigation.navigate('Chat', { chatId: res.data })
+            } else {
+                showToast(res.message)
+            }
+        } catch (error) {
+            handleError(error)
+        }
+    }
+
+    return (
+        <View style={styles.likeItem}>
+            <Image source={item.profileUri ? { uri: item.profileUri } : require('../../assets/images/avatar.png')} style={styles.imageLike} />
+            <View style={styles.textContainer}>
+                <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={styles.statusContainer}>
+                    <Text style={styles.status}>{item.status ? 'Active' : ''}</Text>
+                </LinearGradient>
+                <Text style={styles.nameLike}>{item.name || 'Anonymous User'}</Text>
+                {/* <Text style={styles.location}>{item.location}</Text> */}
+            </View>
+
+            <TouchableOpacity onPress={() => handleChat()}>
+                <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={styles.videoIcon}>
+                    <Feather name="phone-call" size={15} color="white" />
+                    <Text style={styles.videoText}>Chat Now</Text>
+                </LinearGradient>
+            </TouchableOpacity>
+        </View>
+    )
+}
+
+export default UserCard
+
+const styles = StyleSheet.create({
+    likeItem: {
+        flexDirection: 'row',
+        marginHorizontal: 10,
+        marginVertical: 5,
+        borderWidth: 1,
+        borderRadius: 10,
+        borderColor: '#EEE',
+        padding: 8,
+        alignItems: 'center',
+        position: 'relative',
+    },
+    imageLike: {
+        width: 80,
+        height: 80,
+        borderRadius: 5,
+    },
+    textContainer: {
+        marginLeft: 10,
+        flex: 1,
+    },
+    nameLike: {
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    location: {
+        color: 'gray',
+        fontSize: 11,
+    },
+    statusContainer: {
+        borderRadius: 2,
+        width: 45,
+        height: 15,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    status: {
+        color: 'white',
+        fontSize: 9,
+    },
+    videoText: {
+        color: 'white',
+        fontSize: 12,
+        marginLeft: 3,
+    },
+    videoIcon: {
+        marginLeft: 10,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        backgroundColor: '#6200EE',
+        borderRadius: 4,
+        position: 'absolute',
+        right: 0,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+})
