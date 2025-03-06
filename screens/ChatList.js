@@ -39,7 +39,7 @@ const ChatList = () => {
         setRefreshing(true)
         setMessages([])
         setLastVisible(null)
-        await fetchUsers(true)
+        await fetchChats(true)
         setRefreshing(false)
     }
 

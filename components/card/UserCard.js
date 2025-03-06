@@ -1,12 +1,12 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity,PermissionsAndroid } from 'react-native'
+import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
-import Feather from '@expo/vector-icons/Feather'
 import { useSelector } from 'react-redux'
 import { useNavigation } from '@react-navigation/native'
 import ChatService from '../../services/ChatService'
 import showToast from '../../utils/toast'
 import { handleError } from '../../utils/function'
+import { Fontisto } from '@expo/vector-icons'
 
 const UserCard = ({ item }) => {
     const { user } = useSelector((state) => state.auth)
@@ -39,7 +39,7 @@ const UserCard = ({ item }) => {
 
             <TouchableOpacity onPress={() => handleChat()}>
                 <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={styles.videoIcon}>
-                    <Feather name="phone-call" size={15} color="white" />
+                    <Fontisto name="hipchat" size={15} color="white" />
                     <Text style={styles.videoText}>Chat Now</Text>
                 </LinearGradient>
             </TouchableOpacity>
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     videoIcon: {
         marginLeft: 10,
         paddingHorizontal: 8,
-        paddingVertical: 2,
+        paddingVertical: 5,
         backgroundColor: '#6200EE',
         borderRadius: 4,
         position: 'absolute',

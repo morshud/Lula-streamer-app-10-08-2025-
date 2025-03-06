@@ -32,6 +32,7 @@ import {
     OnBoarding1,
     CreateProfile,
     Menu,
+    CreatePost,
 } from '../screens'
 import { handleError } from '../utils/function'
 import AuthService from '../services/AuthService'
@@ -154,6 +155,7 @@ const AppNavigation = () => {
                     <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
                     <Stack.Screen name="TransactionHistory" component={TransactionHistory} />
                     <Stack.Screen name="Plans" component={Plans} />
+                    <Stack.Screen name="CreatePost" component={CreatePost} />
                     <Stack.Screen name="Main" component={BottomTabNavigation} />
                 </Stack.Navigator>
             </NavigationContainer>

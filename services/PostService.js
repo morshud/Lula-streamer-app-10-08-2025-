@@ -1,0 +1,98 @@
+import { arrayUnion, arrayRemove } from '@react-native-firebase/firestore'
+import BaseService from './BaseService'
+
+class PostService extends BaseService {
+    #collection
+    constructor(collectionName) {
+        super(collectionName)
+        this.#collection = collectionName
+    }
+
+    // Create a new post (image or video)
+    async createPost(userId, type, mediaUrl, caption = '') {
+        try {
+            if (!['FEED', 'VIDEO'].includes(type)) {
+                throw new Error('Invalid post type')
+            }
+
+            const postData = this.toFirestore(
+                {
+                    userId,
+                    type,
+                    mediaUrl,
+                    caption,
+                    likes: [],
+                    comments: [],
+                },
+                true
+            )
+
+            const postRef = await this.db.collection(this.#collection).add(postData)
+            return { error: false, data: postRef.id }
+        } catch (error) {
+            return this.handleError(error.message)
+        }
+    }
+
+    // Get posts with pagination
+    async getPosts(limit = 10, lastVisible = null) {
+        try {
+            let query = this.db.collection(this.#collection).orderBy('createdAt', 'desc').limit(limit)
+            if (lastVisible) {
+                query = query.startAfter(lastVisible)
+            }
+
+            const snapshot = await query.get()
+            if (snapshot.empty) {
+                return { posts: [], lastVisible: null }
+            }
+
+            const lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1]
+            const posts = snapshot.docs.map((doc) => this.fromFirestore(doc))
+
+            return { posts, lastVisible: lastVisibleDoc }
+        } catch (error) {
+            return this.handleError(error.message)
+        }
+    }
+
+    // Like a post
+    async likePost(postId, userId) {
+        try {
+            const postRef = this.db.collection(this.#collection).doc(postId)
+            await postRef.update({ likes: arrayUnion(userId) })
+            return { error: false, message: 'Post liked' }
+        } catch (error) {
+            return this.handleError(error.message)
+        }
+    }
+
+    // Unlike a post
+    async unlikePost(postId, userId) {
+        try {
+            const postRef = this.db.collection(this.#collection).doc(postId)
+            await postRef.update({ likes: arrayRemove(userId) })
+            return { error: false, message: 'Post unliked' }
+        } catch (error) {
+            return this.handleError(error.message)
+        }
+    }
+
+    // Add a comment to a post
+    async addComment(postId, userId, comment) {
+        try {
+            const commentData = this.toFirestore({
+                userId,
+                comment,
+            })
+
+            const postRef = this.db.collection(this.#collection).doc(postId)
+            await postRef.update({ comments: arrayUnion(commentData) })
+            return { error: false, message: 'Comment added' }
+        } catch (error) {
+            return this.handleError(error.message)
+        }
+    }
+}
+
+export default new PostService('posts')

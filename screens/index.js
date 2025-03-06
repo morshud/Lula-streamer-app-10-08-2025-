@@ -24,6 +24,7 @@ import Plans from './Plans'
 import EditProfile from './EditProfile'
 import StreamerProfile from './StreamerProfile'
 import Menu from './Menu'
+import CreatePost from "./CreatePost"
 
 export {
     NoInternet,
@@ -49,4 +50,5 @@ export {
     TransactionHistory,
     Plans,
     Menu,
+    CreatePost,
 }

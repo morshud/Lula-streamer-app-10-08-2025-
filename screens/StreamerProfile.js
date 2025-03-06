@@ -1,120 +1,99 @@
-import React, { useState } from 'react'
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions } from 'react-native'
-import FontAwesome from '@expo/vector-icons/FontAwesome'
+import React, { useEffect, useState } from 'react'
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import Feather from '@expo/vector-icons/Feather'
 import { useNavigation } from '@react-navigation/native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { TabView } from 'react-native-tab-view'
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons'
 import { Entypo } from '@expo/vector-icons'
-
-const Posts = () => {
-    return (
-        <View style={styles.tabContent}>
-            <Text>Posts Section</Text>
-            {/* Add your content for posts here */}
-        </View>
-    )
-}
-
-const Followers = () => {
-    return (
-        <View style={styles.tabContent}>
-            <Text>Followers Section</Text>
-            {/* Add your content for followers here */}
-        </View>
-    )
-}
-
-const Followings = () => {
-    return (
-        <View style={styles.tabContent}>
-            <Text>Followings Section</Text>
-            {/* Add your content for followings here */}
-        </View>
-    )
-}
+import { handleError } from '../utils/function'
+import AuthService from '../services/AuthService'
+import { useSelector } from 'react-redux'
+import Loading from '../components/shared/Loading'
 
 const StreamerProfile = () => {
+    const { user } = useSelector((state) => state.auth)
     const navigation = useNavigation()
-    const layout = useWindowDimensions()
-    const [index, setIndex] = useState(0)
-    const [routes] = useState([
-        { key: 'POST', title: 'Posts', value: '0', icon: <MaterialCommunityIcons name="post-outline" size={22} color="#555" /> },
-        { key: 'FOLLOWER', title: 'Followers', value: '0', icon: <Feather name="users" size={22} color="#555" /> },
-        { key: 'FOLLOWING', title: 'Followings', value: '0', icon: <SimpleLineIcons name="user-following" size={22} color="#555" /> },
-    ])
+    const [data, setData] = useState(null)
+    const [isLoading, setIsLoading] = useState(true)
 
-    const renderScene = ({ route }) => {
-        switch (route.key) {
-            case 'POST':
-                return <Posts />
-            case 'FOLLOWER':
-                return <Followers />
-            case 'FOLLOWING':
-                return <Followings />
-            default:
-                return null
+    useEffect(() => {
+        const getData = async () => {
+            try {
+                setIsLoading(true)
+                const res = await AuthService.getUser(user.id)
+                if (!res.error) {
+                    setData(res.user)
+                }
+            } catch (error) {
+                handleError(error)
+            } finally {
+                setIsLoading(false)
+            }
         }
-    }
+        getData()
+    }, [])
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <View style={styles.header} className={'mb-5'}>
-                <Text style={styles.mediumText} className={'text-center'}>
-                    @Micale clarke
-                </Text>
-                <TouchableOpacity onPress={() => navigation.navigate("Menu")}>
-                    <Entypo name="dots-three-vertical" size={20} color="black" />
-                </TouchableOpacity>
-            </View>
+        <>
+            {isLoading ? (
+                <Loading isVisible={true} />
+            ) : (
+                <ScrollView contentContainerStyle={styles.container}>
+                    <View style={styles.header} className={'mb-5'}>
+                        <View />
+                        <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
+                            <Entypo name="dots-three-vertical" size={20} color="black" />
+                        </TouchableOpacity>
+                    </View>
 
-            <View style={styles.profileHeader}>
-                <Image source={require('../assets/images/men.png')} style={styles.profileImage} />
-                <View style={styles.textContainer}>
-                    <Text style={styles.username}>Mr. Perfect billa</Text>
-                    <Text style={styles.location}>Pakistan</Text>
-                    <Text style={styles.bio}>My name is mick & I have been using this application for 2 years. It's a nice application.</Text>
-                </View>
-            </View>
+                    <View style={styles.profileHeader}>
+                        <Image source={data?.profileUri ? { uri: data?.profileUri } : require('../assets/images/avatar.png')} style={styles.profileImage} />
+                        <View style={styles.textContainer}>
+                            <Text style={styles.username}>{data?.name}</Text>
+                            {/* <Text style={styles.location}>Pakistan</Text> */}
+                            {/* <Text style={styles.bio}>My name is mick & I have been using this application for 2 years. It's a nice application.</Text> */}
+                        </View>
+                    </View>
 
-            <View style={styles.statsContainer}>
-                <TabView
-                    style={styles.tabs}
-                    navigationState={{ index, routes }}
-                    renderScene={renderScene}
-                    onIndexChange={setIndex}
-                    initialLayout={{ width: layout.width }}
-                    renderTabBar={(props) => {
-                        return (
-                            <View style={styles.tabBar}>
-                                {props.navigationState.routes.map((route, i) => (
-                                    <TouchableOpacity key={i} style={[styles.tabItem, index === i && styles.activeTabItem]} onPress={() => setIndex(i)}>
-                                        {route.icon}
-                                        <Text style={[styles.coinValue, index === i && styles.activeCoinValue]}>{route.value}</Text>
-                                        <Text style={[styles.tabLabel, index === i && styles.activeTabLabel]}>{route.title}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                                <TouchableOpacity style={styles.tabItem}>
-                                    <Image source={require('../assets/images/coin2.png')} style={styles.coinImage} />
-                                    <Text style={styles.coinValue}>0</Text>
-                                    <Text style={styles.coinLabel}>Coins</Text>
-                                </TouchableOpacity>
-                            </View>
-                        )
-                    }}
-                />
-            </View>
-
-            <TouchableOpacity onPress={() => navigation.navigate('Main')}>
-                <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={styles.button}>
-                    <Text style={styles.buttonText} className={'text-white text-center'}>
-                        Follow
-                    </Text>
-                </LinearGradient>
-            </TouchableOpacity>
-        </ScrollView>
+                    <View style={styles.statsContainer}>
+                        <View className="flex-row justify-between">
+                            <TouchableOpacity style={[styles.tabItem]}>
+                                <MaterialCommunityIcons name="post-outline" size={22} color="#555" />
+                                <Text style={[styles.coinValue]}>{data?.post || 0}</Text>
+                                <Text style={[styles.tabLabel]}>Posts</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={[styles.tabItem]}>
+                                <Feather name="users" size={22} color="#555" />
+                                <Text style={[styles.coinValue]}>0</Text>
+                                <Text style={[styles.tabLabel]}>Followers</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={[styles.tabItem]}>
+                                <SimpleLineIcons name="user-following" size={22} color="#555" />
+                                <Text style={[styles.coinValue]}>0</Text>
+                                <Text style={[styles.tabLabel]}>Followings</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                    <View style={styles.buttonDiv}>
+                        <TouchableOpacity className="" style={styles.buttonContainer} onPress={() => navigation.navigate('CreatePost')}>
+                            <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={styles.button}>
+                                <Text style={styles.buttonText} className={'text-white text-center'}>
+                                    Create Post
+                                </Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.buttonContainer} onPress={() => navigation.navigate('CreatePost')}>
+                            <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={styles.button}>
+                                <Text style={styles.buttonText} className={'text-white text-center'}>
+                                    Upload Video
+                                </Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            )}
+        </>
     )
 }
 
@@ -212,9 +191,17 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#555',
     },
+
+    buttonDiv: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    buttonContainer: {
+        width: '48%',
+    },
     button: {
-        backgroundColor: '#fff',
         paddingHorizontal: 10,
+        width: '100%',
         paddingVertical: 15,
         borderRadius: 40,
         marginTop: 20,
