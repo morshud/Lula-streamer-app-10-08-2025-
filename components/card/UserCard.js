@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSelector } from 'react-redux'
 import { useNavigation } from '@react-navigation/native'
@@ -7,9 +7,12 @@ import ChatService from '../../services/ChatService'
 import showToast from '../../utils/toast'
 import { handleError } from '../../utils/function'
 import { Fontisto } from '@expo/vector-icons'
+import FollowService from '../../services/FollowService'
 
 const UserCard = ({ item }) => {
     const { user } = useSelector((state) => state.auth)
+    const [follow, setFollow] = useState(item?.followers && item.followers?.includes(user.id) ? true : false)
+
     const navigation = useNavigation()
     const handleChat = async () => {
         try {
@@ -20,6 +23,20 @@ const UserCard = ({ item }) => {
                 navigation.navigate('Chat', { chatId: res.data })
             } else {
                 showToast(res.message)
+            }
+        } catch (error) {
+            handleError(error)
+        }
+    }
+
+    const handleFollow = async () => {
+        try {
+            if (follow) {
+                setFollow(false)
+                await FollowService.unfollowUser(user.id, item.id)
+            } else {
+                setFollow(true)
+                await FollowService.followUser(user.id, item.id)
             }
         } catch (error) {
             handleError(error)
@@ -37,6 +54,12 @@ const UserCard = ({ item }) => {
                 {/* <Text style={styles.location}>{item.location}</Text> */}
             </View>
 
+            <TouchableOpacity onPress={() => handleFollow()}>
+                <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={[styles.videoIcon, { top: -40 }]}>
+                    <Fontisto name="hipchat" size={15} color="white" />
+                    <Text style={styles.videoText}>{follow ? 'Unfollow' : 'Follow'}</Text>
+                </LinearGradient>
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => handleChat()}>
                 <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={styles.videoIcon}>
                     <Fontisto name="hipchat" size={15} color="white" />

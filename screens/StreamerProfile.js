@@ -65,12 +65,12 @@ const StreamerProfile = () => {
                             </TouchableOpacity>
                             <TouchableOpacity style={[styles.tabItem]}>
                                 <Feather name="users" size={22} color="#555" />
-                                <Text style={[styles.coinValue]}>0</Text>
+                                <Text style={[styles.coinValue]}>{data?.followers?.length || 0}</Text>
                                 <Text style={[styles.tabLabel]}>Followers</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={[styles.tabItem]}>
                                 <SimpleLineIcons name="user-following" size={22} color="#555" />
-                                <Text style={[styles.coinValue]}>0</Text>
+                                <Text style={[styles.coinValue]}>{data?.following.length || 0}</Text>
                                 <Text style={[styles.tabLabel]}>Followings</Text>
                             </TouchableOpacity>
                         </View>
