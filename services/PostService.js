@@ -35,22 +35,17 @@ class PostService extends BaseService {
     }
 
     // Get posts with pagination
-    async getPosts(limit = 10, lastVisible = null) {
+    async getPosts(id) {
         try {
-            let query = this.db.collection(this.#collection).orderBy('createdAt', 'desc').limit(limit)
-            if (lastVisible) {
-                query = query.startAfter(lastVisible)
-            }
+            let snapshot = await this.db.collection(this.#collection).where('userId', '==', id).orderBy('createdAt', 'desc').get()
 
-            const snapshot = await query.get()
             if (snapshot.empty) {
-                return { posts: [], lastVisible: null }
+                return { error: false, data: [] }
             }
 
-            const lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1]
             const posts = snapshot.docs.map((doc) => this.fromFirestore(doc))
 
-            return { posts, lastVisible: lastVisibleDoc }
+            return { error: false, data: posts }
         } catch (error) {
             return this.handleError(error.message)
         }

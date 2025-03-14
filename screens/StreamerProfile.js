@@ -1,15 +1,105 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import Feather from '@expo/vector-icons/Feather'
 import { useNavigation } from '@react-navigation/native'
 import { LinearGradient } from 'expo-linear-gradient'
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons'
-import { Entypo } from '@expo/vector-icons'
+import { Entypo, Ionicons } from '@expo/vector-icons'
 import { handleError } from '../utils/function'
 import AuthService from '../services/AuthService'
 import { useSelector } from 'react-redux'
 import Loading from '../components/shared/Loading'
+import PostService from '../services/PostService'
+import { FlatList } from 'react-native'
+import { Video } from 'expo-av'
+
+function Posts() {
+    const { user } = useSelector((state) => state.auth);
+    const [isLoading, setIsLoading] = useState(true);
+    const [posts, setPosts] = useState([]);
+
+    useEffect(() => {
+        const getPosts = async () => {
+            try {
+                setIsLoading(true);
+                const res = await PostService.getPosts(user.id);
+                if (!res.error) {
+                    setPosts(res.data);
+                }
+            } catch (error) {
+                handleError(error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        getPosts();
+    }, []);
+
+    return (
+        <View className="flex-1 bg-white ">
+            <Text className="text-xl font-bold mb-4">My Posts</Text>
+
+            {isLoading ? (
+                <ActivityIndicator size="large" color="#6200EE" />
+            ) : (
+                <FlatList
+                    data={posts}
+                    keyExtractor={(item) => item.id}
+                    contentContainerStyle={{paddingBottom:24}}
+                    ListEmptyComponent={() => (
+                        <View className="items-center justify-center mt-20">
+                            <Text className="text-gray-500 text-lg">No posts found.</Text>
+                        </View>
+                    )}
+                    renderItem={({ item }) => (
+                        <View className="bg-purple-500 rounded-lg p-4 mb-4">
+                            {/* Header */}
+                            <View className="flex-row items-center justify-between">
+                                <View className="flex-row items-center">
+                                    <Image
+                                        source={{ uri: user.profileUri }}
+                                        className="w-10 h-10 rounded-full"
+                                    />
+                                    <View className="ml-3">
+                                        <Text className="text-white text-lg font-semibold">{user.name}</Text>
+                                        {/* <Text className="text-white text-sm">📍 Bangalore</Text> */}
+                                    </View>
+                                </View>
+                               
+                            </View>
+
+                            {/* Caption */}
+                            <Text className="text-white mt-2">{item.caption}</Text>
+
+                            {/* Media */}
+                            {item.type === 'FEED' ? (
+                                <Image
+                                    source={{ uri: item.mediaUrl }}
+                                    className="w-full h-60 rounded-lg mt-2"
+                                />
+                            ) : (
+                                <Video source={{ uri: item.mediaUrl }} style={styles.videoPlayer} useNativeControls resizeMode="cover" isLooping />
+                            )}
+
+                            {/* Footer */}
+                            <View className="flex-row justify-between items-center mt-2">
+                                <View className="flex-row items-center">
+                                    <Ionicons name="heart-outline" size={20} color="white" />
+                                    <Text className="text-white ml-1">{item.likes.length} Likes</Text>
+                                </View>
+                                <View className="flex-row items-center">
+                                    <Ionicons name="chatbubble-outline" size={20} color="white" />
+                                    <Text className="text-white ml-1">{item.comments.length} Comments</Text>
+                                </View>
+                            </View>
+                        </View>
+                    )}
+                />
+            )}
+        </View>
+    );
+}
 
 const StreamerProfile = () => {
     const { user } = useSelector((state) => state.auth)
@@ -39,7 +129,7 @@ const StreamerProfile = () => {
             {isLoading ? (
                 <Loading isVisible={true} />
             ) : (
-                <ScrollView contentContainerStyle={styles.container}>
+                <View style={styles.container}>
                     <View style={styles.header} className={'mb-5'}>
                         <View />
                         <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
@@ -63,12 +153,12 @@ const StreamerProfile = () => {
                                 <Text style={[styles.coinValue]}>{data?.post || 0}</Text>
                                 <Text style={[styles.tabLabel]}>Posts</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.tabItem]} onPress={() => navigation.navigate("Follower")}>
+                            <TouchableOpacity style={[styles.tabItem]} onPress={() => navigation.navigate('Follower')}>
                                 <Feather name="users" size={22} color="#555" />
                                 <Text style={[styles.coinValue]}>{data?.followers?.length || 0}</Text>
                                 <Text style={[styles.tabLabel]}>Followers</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.tabItem]} onPress={() => navigation.navigate("Following")}>
+                            <TouchableOpacity style={[styles.tabItem]} onPress={() => navigation.navigate('Following')}>
                                 <SimpleLineIcons name="user-following" size={22} color="#555" />
                                 <Text style={[styles.coinValue]}>{data?.following?.length || 0}</Text>
                                 <Text style={[styles.tabLabel]}>Followings</Text>
@@ -91,7 +181,8 @@ const StreamerProfile = () => {
                             </LinearGradient>
                         </TouchableOpacity>
                     </View>
-                </ScrollView>
+                    <Posts />
+                </View>
             )}
         </>
     )
@@ -117,6 +208,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 8,
         marginBottom: 20,
+    },
+    videoPlayer: {
+        width: '100%',
+        height: 300,
+        borderRadius: 5,
     },
     profileImage: {
         width: 100,
