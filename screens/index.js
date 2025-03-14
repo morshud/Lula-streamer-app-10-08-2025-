@@ -8,6 +8,8 @@ import Otp from './Otp'
 import CreateProfile from './CreateProfile'
 import Main from './Main'
 
+import Follower from "./Follower"
+import Following from "./Following"
 import Matching from './Matching'
 import Explore from './Explore'
 import SelectPartner from './SelectPartner'
@@ -51,4 +53,6 @@ export {
     Plans,
     Menu,
     CreatePost,
+    Following,
+    Follower,
 }

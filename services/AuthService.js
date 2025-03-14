@@ -43,6 +43,7 @@ class AuthService extends BaseService {
                     status: true,
                     isDeleted: false,
                     profileCompleted: false,
+                    id:user.uid,
                 }
 
                 // Save user data to Firestore

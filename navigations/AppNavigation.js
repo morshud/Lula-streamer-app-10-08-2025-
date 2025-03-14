@@ -33,6 +33,8 @@ import {
     CreateProfile,
     Menu,
     CreatePost,
+    Following,
+    Follower,
 } from '../screens'
 import { handleError } from '../utils/function'
 import AuthService from '../services/AuthService'
@@ -156,6 +158,8 @@ const AppNavigation = () => {
                     <Stack.Screen name="TransactionHistory" component={TransactionHistory} />
                     <Stack.Screen name="Plans" component={Plans} />
                     <Stack.Screen name="CreatePost" component={CreatePost} />
+                    <Stack.Screen name="Following" component={Following} />
+                    <Stack.Screen name="Follower" component={Follower} />
                     <Stack.Screen name="Main" component={BottomTabNavigation} />
                 </Stack.Navigator>
             </NavigationContainer>

@@ -60,7 +60,17 @@ class FollowService extends BaseService {
         try {
             const userDoc = await this.db.collection('user').doc(userId).get()
             if (!userDoc.exists) return { error: true, message: 'User not found' }
-            return { error: false, followers: userDoc.data().followers || [] }
+
+            const followerIds = userDoc.data().followers || []
+            if (followerIds.length === 0) {
+                return { error: false, followers:[] }
+            }
+
+            const followerSnapshot = await this.db.collection('user').where('id', 'in', followerIds).get()
+
+            const followers = followerSnapshot.docs.map((item) => this.fromFirestore(item))
+
+            return { error: false, followers }
         } catch (error) {
             return this.handleError(error.message)
         }
@@ -70,8 +80,19 @@ class FollowService extends BaseService {
     async getFollowing(userId) {
         try {
             const userDoc = await this.db.collection('user').doc(userId).get()
-            if (!userDoc.exists) return { error: true, message: 'User not found' }
-            return { error: false, following: userDoc.data().following || [] }
+            if (!userDoc.exists) return { error: true, message: "User Not Found" }
+
+            const followingIds = userDoc.data().following || []
+
+            if (followingIds.length === 0) {
+                return { error: false, following:[] }
+            }
+
+            const followerSnapshot = await this.db.collection('user').where('id', 'in', followingIds).get()
+
+            const following = followerSnapshot.docs.map((item) => this.fromFirestore(item))
+
+            return { error: false, following, }
         } catch (error) {
             return this.handleError(error.message)
         }
