@@ -49,16 +49,16 @@ const ChatList = () => {
     }, [])
 
     // Render each chat item in FlatList
-    const renderChatItem = ({ item }) => (
-        <TouchableOpacity style={styles.chatItem} onPress={() => navigation.navigate('Chat', { chatId: item.id })}>
-            <Image source={item.user?.profileUri ? { uri: item.user.profileUri } : require('../assets/images/avatar.png')} style={styles.image} />
-            <View style={styles.textContainer}>
-                <Text style={styles.name}>{item.user?.name || 'Anonymose User'}</Text>
-                <Text style={styles.message}>{item.lastMessage}</Text>
-            </View>
-            <Text style={styles.time}>{formatDate(item.updatedAt)}</Text>
-        </TouchableOpacity>
-    )
+        const renderChatItem = ({ item }) => (
+            <TouchableOpacity style={styles.chatItem} onPress={() => navigation.navigate('Chat', { chatId: item.id })}>
+                <Image source={item.user?.profileUri ? { uri: item.user.profileUri } : require('../assets/images/avatar.png')} style={styles.image} />
+                <View style={styles.textContainer}>
+                    <Text style={styles.name}>{item.user?.name || 'Anonymose User'}</Text>
+                    <Text style={styles.message}>{item.lastMessage}</Text>
+                </View>
+                <Text style={styles.time}>{formatDate(item.updatedAt)}</Text>
+            </TouchableOpacity>
+        )
 
     return (
         <LinearGradient colors={['rgba(171, 73, 161, 0.9)', 'rgba(97, 86, 226, 0.9)']} style={styles.gradient}>

@@ -56,7 +56,7 @@ const UserCard = ({ item }) => {
 
             <TouchableOpacity onPress={() => handleFollow()}>
                 <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={[styles.videoIcon, { top: -40 }]}>
-                    <Fontisto name="hipchat" size={15} color="white" />
+                    {/* <Fontisto name="hipchat" size={15} color="white" /> */}
                     <Text style={styles.videoText}>{follow ? 'Unfollow' : 'Follow'}</Text>
                 </LinearGradient>
             </TouchableOpacity>

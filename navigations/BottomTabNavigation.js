@@ -109,6 +109,12 @@ const BottomTabNavigation = () => {
       <Tab.Screen
         name="LiveStreaming"
         component={LiveStreaming}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault(); // Prevents navigation
+            console.log("Navigation to LiveStreaming is disabled!");
+          },
+        })}
         options={{
           tabBarIcon: ({ focused }) => (
             <LinearGradient
