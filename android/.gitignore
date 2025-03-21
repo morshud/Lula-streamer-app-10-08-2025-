@@ -13,4 +13,3 @@ local.properties
 
 # Bundle artifacts
 *.jsbundle
-my-release-key.keystore

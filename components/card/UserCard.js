@@ -28,6 +28,7 @@ const UserCard = ({ item }) => {
             handleError(error)
         }
     }
+    
 
     const handleFollow = async () => {
         try {
@@ -42,6 +43,9 @@ const UserCard = ({ item }) => {
             handleError(error)
         }
     }
+
+    
+    
 
     return (
         <View style={styles.likeItem}>
@@ -64,6 +68,12 @@ const UserCard = ({ item }) => {
                 <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={styles.videoIcon}>
                     <Fontisto name="hipchat" size={15} color="white" />
                     <Text style={styles.videoText}>Chat Now</Text>
+                </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate("Call", {item})}>
+                <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={[styles.videoIcon,, { top: 30 }]}>
+                    <Fontisto name="hipchat" size={15} color="white" />
+                    <Text style={styles.videoText}>Call Now</Text>
                 </LinearGradient>
             </TouchableOpacity>
         </View>

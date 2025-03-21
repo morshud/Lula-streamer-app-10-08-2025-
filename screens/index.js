@@ -7,6 +7,7 @@ import Login from './Login'
 import Otp from './Otp'
 import CreateProfile from './CreateProfile'
 import Main from './Main'
+import Call from "./Call"
 
 import Follower from "./Follower"
 import Following from "./Following"
@@ -55,4 +56,5 @@ export {
     CreatePost,
     Following,
     Follower,
+    Call,
 }

@@ -10,7 +10,7 @@ import { useFonts } from 'expo-font'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { FONTS } from '../constants/fonts'
 import auth from '@react-native-firebase/auth'
-
+import { navigationRef } from './RootNavigation'
 import {
     NoInternet,
     Select,
@@ -35,6 +35,7 @@ import {
     CreatePost,
     Following,
     Follower,
+    Call,
 } from '../screens'
 import { handleError } from '../utils/function'
 import AuthService from '../services/AuthService'
@@ -135,7 +136,7 @@ const AppNavigation = () => {
 
     return (
         <SafeAreaProvider onLayout={onLayoutRootView}>
-            <NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
                 <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={getinitialScreen()}>
                     <Stack.Screen name="NoInternet" component={NoInternet} />
                     <Stack.Screen name="OnBoarding1" component={OnBoarding1} />
@@ -161,6 +162,7 @@ const AppNavigation = () => {
                     <Stack.Screen name="Following" component={Following} />
                     <Stack.Screen name="Follower" component={Follower} />
                     <Stack.Screen name="Main" component={BottomTabNavigation} />
+                    <Stack.Screen name="Call" component={Call} />
                 </Stack.Navigator>
             </NavigationContainer>
         </SafeAreaProvider>
