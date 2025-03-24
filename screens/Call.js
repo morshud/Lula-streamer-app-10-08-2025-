@@ -1,89 +1,91 @@
-// import React from 'react'
-// import { View, StyleSheet } from 'react-native'
-// import { ZegoUIKitPrebuiltCall, ONE_ON_ONE_VIDEO_CALL_CONFIG } from '@zegocloud/zego-uikit-prebuilt-call-rn'
-// import { useRoute } from '@react-navigation/native'
-// export default function VoiceCallPage(props) {
-//     const {
-//         params: { item },
-//     } = useRoute()
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { StreamVideoClient, StreamVideo, useStreamVideoClient, CallingState, CallContent, StreamCall } from '@stream-io/video-react-native-sdk'
+import { useSelector } from 'react-redux'
+import functions from '@react-native-firebase/functions'
+import { useNavigation, useRoute } from '@react-navigation/native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import CallManager from '../utils/CallManager'
 
-//     return (
-//         <View style={styles.container}>
-//             <ZegoUIKitPrebuiltCall
-//                 appID={1866331340}
-//                 appSign={'1866331340'}
-//                 userID={item.id} // userID can be something like a phone number or the user id on your own user system.
-//                 userName={item.name}
-//                 callID={Math.random().to} // callID can be any unique string.
-//                 config={{
-//                     // You can also use ONE_ON_ONE_VOICE_CALL_CONFIG/GROUP_VIDEO_CALL_CONFIG/GROUP_VOICE_CALL_CONFIG to make more types of calls.
-//                     ...ONE_ON_ONE_VIDEO_CALL_CONFIG,
-//                     onCallEnd: (callID, reason, duration) => {
-//                         props.navigation.goBack()
-//                     },
-//                 }}
-//             />
-//         </View>
-//     )
-// }
+const CallRoom = ({ call }) => {
+    const navigation = useNavigation()
 
-// const styles = StyleSheet.create({
-//     container: {
-//         flex: 1,
-//         alignItems: 'center',
-//         justifyContent: 'center',
-//         zIndex: 0,
-//     },
-// })
-
-// import React from 'react'
-// import ZegoUIKitPrebuiltCall, { ONE_ON_ONE_VIDEO_CALL_CONFIG } from '@zegocloud/zego-uikit-prebuilt-call-rn'
-// import { useRoute } from '@react-navigation/native'
-
-// export default function VoiceCallPage(props) {
-//     const {
-//         params: { item },
-//     } = useRoute()
-//     return (
-//         <View style={styles.container}>
-//             <ZegoUIKitPrebuiltCall
-//                 appID={1866331340}
-//                 appSign={'9f3175b691a995b2e07c87594b04837d755d9b2c43de5ced2ad47f07a9c3d6c6'}
-//                 userID={item.id} // userID can be something like a phone number or the user id on your own user system.
-//                 userName={item.name}
-//                 callID={Math.random().to} // callID can be any unique string.
-//                 config={{
-//                     // You can also use ONE_ON_ONE_VOICE_CALL_CONFIG/GROUP_VIDEO_CALL_CONFIG/GROUP_VOICE_CALL_CONFIG to make more types of calls.
-//                     ...ONE_ON_ONE_VIDEO_CALL_CONFIG,
-//                     onHangUp: () => {
-//                         props.navigation.goBack()
-//                     },
-//                 }}
-//             />
-//         </View>
-//     )
-// }
-// const styles = StyleSheet.create({
-//     container: {
-//         flex: 1,
-//         alignItems: 'center',
-//         justifyContent: 'center',
-//         zIndex: 0,
-//     },
-// })
-
-
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
-
-const Call = () => {
-  return (
-    <View>
-      <Text>Call</Text>
-    </View>
-  )
+    return (
+        <View style={{ flex: 1 }}>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+                <CallContent
+                    onHangupCallHandler={() => {
+                        navigation.goBack()
+                        call?.endCall()
+                    }}
+                />
+            </GestureHandlerRootView>
+        </View>
+    )
 }
 
-export default Call
+const CallComponent = () => {
+    const {
+        params: { item, id },
+    } = useRoute()
+    const client = useStreamVideoClient()
+    const [call, setCall] = useState(null)
+    const [slug, setSlug] = useState(null)
+
+    useEffect(() => {
+        let slug
+        if (id) {
+            slug = id.toString()
+            const _call = client.call('default', slug)
+            _call.join({ create: false }).then(() => {
+                setCall(_call)
+            })
+        } else {
+            slug = item?.id
+            const _call = client.call('default', slug)
+            _call.join({ create: true }).then(() => {
+                setCall(_call)
+            })
+        }
+        setSlug(slug)
+
+        return () => {
+            if (call?.state.callState !== CallingState.LEFT) {
+                call?.leave()
+
+            }
+        }
+    }, [client, id, item?.id])
+
+    if (!call || !slug) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size={'large'} />
+            </View>
+        )
+    }
+
+    return (
+        <StreamCall call={call}>
+            <CallRoom call={call} />
+        </StreamCall>
+    )
+}
+
+const CallScreen = () => {
+    const client = CallManager.instance?.getClient()
+
+    if (!client) {
+        return null
+    }
+
+    return (
+        <StreamVideo client={client}>
+            <CallComponent />
+        </StreamVideo>
+    )
+}
+
+export default CallScreen
 
 const styles = StyleSheet.create({})

@@ -23,17 +23,41 @@
                 "backgroundColor": "#335EF7"
             },
             "package": "com.lula.streamer",
-            "googleServicesFile": "./google-services.json"
+            "googleServicesFile": "./google-services.json",
+            "permissions": [
+                "android.permissions.CAMERA",
+                "android.permissions.RECORD_AUDIO",
+                "android.permissions.INTERNET",
+                "android.permissions.MODIFY_AUDIO_SETTINGS",
+                "android.permissions.BLUETOOTH",
+                "android.permissions.BLUETOOTH_ADMIN",
+                "android.permissions.BLUETOOTH_CONNECT",
+                "android.permissions.BLUETOOTH_SCAN"
+            ]
         },
         "web": {
             "favicon": "./assets/images/favicon.png"
         },
         "plugins": [
+            "@stream-io/video-react-native-sdk",
+            [
+                "@config-plugins/react-native-webrtc",
+                {
+                    "cameraPermission": "$(PRODUCT_NAME) requires camera access in order to capture and transmit video",
+                    "microphonePermission": "$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio"
+                }
+            ],
             [
                 "expo-build-properties",
                 {
                     "ios": {
                         "useFrameworks": "static"
+                    },
+                    "android": {
+                        "minSdkVersion": 24,
+                        "extraMavenRepos": [
+                            "../../node_modules/@notifee/react-native/android/libs"
+                        ]
                     }
                 }
             ],
@@ -41,8 +65,7 @@
                 "expo-camera",
                 {
                     "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
-                    "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
-                    "recordAudioAndroid": true
+                    "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
                 }
             ]
         ]

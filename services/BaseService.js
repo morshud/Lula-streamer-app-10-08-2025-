@@ -1,6 +1,7 @@
 import firestore from '@react-native-firebase/firestore'
 import auth from '@react-native-firebase/auth'
 import storage from '@react-native-firebase/storage'
+import functions from "@react-native-firebase/functions"
 import { serverTimestamp } from '@react-native-firebase/firestore'
 
 class BaseService {

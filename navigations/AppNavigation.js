@@ -41,6 +41,9 @@ import { handleError } from '../utils/function'
 import AuthService from '../services/AuthService'
 import showToast from '../utils/toast'
 import { setUser } from '../store/slices/auth'
+import { Camera } from "expo-camera";
+import { Audio } from "expo-av";
+import CallManager from '../utils/CallManager'
 
 SplashScreen.preventAutoHideAsync()
 const Stack = createNativeStackNavigator()
@@ -93,6 +96,18 @@ const AppNavigation = () => {
         getUser()
     }, [currentUser])
 
+    if (user) {
+        new CallManager(user)
+    }
+
+
+    useEffect(() => {
+        (async () => {
+            const { status: cameraStatus } = await Camera.requestPermissionsAsync();
+            const { status: audioStatus } = await Audio.requestPermissionsAsync();
+        })();
+    }, []);
+
     // Check if it's the first launch
     useEffect(() => {
         const checkFirstLaunch = async () => {
@@ -144,21 +159,21 @@ const AppNavigation = () => {
                     <Stack.Screen name="Select" component={Select} />
                     <Stack.Screen name="Login" component={Login} />
                     <Stack.Screen name="Otp" component={Otp} />
+                    <Stack.Screen name="TransactionHistory" component={TransactionHistory} />
                     <Stack.Screen name="CreateProfile" component={CreateProfile} />
                     <Stack.Screen name="Matching" component={Matching} />
                     <Stack.Screen name="SelectPartner" component={SelectPartner} />
-                    <Stack.Screen name="StartCalling" component={StartCalling} />
                     <Stack.Screen name="Explore" component={Explore} />
                     <Stack.Screen name="ExploreMatch" component={ExploreMatch} />
-                    <Stack.Screen name="EditProfile" component={EditProfile} />
                     <Stack.Screen name="Notification" component={Notification} />
-                    <Stack.Screen name="Chat" component={Chat} />
                     <Stack.Screen name="Setting" component={Setting} />
                     <Stack.Screen name="About" component={About} />
                     <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
-                    <Stack.Screen name="TransactionHistory" component={TransactionHistory} />
                     <Stack.Screen name="Plans" component={Plans} />
+                    <Stack.Screen name="Chat" component={Chat} />
+                    <Stack.Screen name="StartCalling" component={StartCalling} />
                     <Stack.Screen name="CreatePost" component={CreatePost} />
+                    <Stack.Screen name="EditProfile" component={EditProfile} />
                     <Stack.Screen name="Following" component={Following} />
                     <Stack.Screen name="Follower" component={Follower} />
                     <Stack.Screen name="Main" component={BottomTabNavigation} />
