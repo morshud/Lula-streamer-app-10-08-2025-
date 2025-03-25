@@ -68,7 +68,7 @@ const UserCard = ({ item }) => {
             <TouchableOpacity
                 onPress={() => {
                     console.error('call pressed');
-                    navigation.navigate('Call', { item })
+                    navigation.navigate('Call', { userId:item.id })
                 }}
                 style={{zIndex:100}}
             >

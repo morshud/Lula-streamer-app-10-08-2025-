@@ -41,10 +41,10 @@ import { handleError } from '../utils/function'
 import AuthService from '../services/AuthService'
 import showToast from '../utils/toast'
 import { setUser } from '../store/slices/auth'
-import { Camera } from "expo-camera";
-import { Audio } from "expo-av";
+import { Camera } from 'expo-camera'
+import { Audio } from 'expo-av'
 import CallManager from '../utils/CallManager'
-
+import CallWrapper from '../components/wrapper/CallWrapper'
 SplashScreen.preventAutoHideAsync()
 const Stack = createNativeStackNavigator()
 
@@ -55,7 +55,7 @@ const AppNavigation = () => {
     const [isFirstLaunch, setIsFirstLaunch] = useState(null)
     const [fontsLoaded] = useFonts(FONTS)
     const [isLoading, setIsLoading] = useState(true)
-    
+
     const currentUser = auth().currentUser
 
     const onLayoutRootView = useCallback(async () => {
@@ -100,13 +100,12 @@ const AppNavigation = () => {
         new CallManager(user)
     }
 
-
     useEffect(() => {
-        (async () => {
-            const { status: cameraStatus } = await Camera.requestPermissionsAsync();
-            const { status: audioStatus } = await Audio.requestPermissionsAsync();
-        })();
-    }, []);
+        ;(async () => {
+            const { status: cameraStatus } = await Camera.requestPermissionsAsync()
+            const { status: audioStatus } = await Audio.requestPermissionsAsync()
+        })()
+    }, [])
 
     // Check if it's the first launch
     useEffect(() => {
@@ -136,10 +135,10 @@ const AppNavigation = () => {
         let initial = isFirstLaunch ? 'OnBoarding1' : 'Login'
 
         if (user && user.profileCompleted) {
-            initial = "Main"
+            initial = 'Main'
         }
         if (user && !user.profileCompleted) {
-            initial = "CreateProfile"
+            initial = 'CreateProfile'
         }
 
         return initial
@@ -151,35 +150,37 @@ const AppNavigation = () => {
 
     return (
         <SafeAreaProvider onLayout={onLayoutRootView}>
-            <NavigationContainer ref={navigationRef}>
-                <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={getinitialScreen()}>
-                    <Stack.Screen name="NoInternet" component={NoInternet} />
-                    <Stack.Screen name="OnBoarding1" component={OnBoarding1} />
-                    <Stack.Screen name="Menu" component={Menu} />
-                    <Stack.Screen name="Select" component={Select} />
-                    <Stack.Screen name="Login" component={Login} />
-                    <Stack.Screen name="Otp" component={Otp} />
-                    <Stack.Screen name="TransactionHistory" component={TransactionHistory} />
-                    <Stack.Screen name="CreateProfile" component={CreateProfile} />
-                    <Stack.Screen name="Matching" component={Matching} />
-                    <Stack.Screen name="SelectPartner" component={SelectPartner} />
-                    <Stack.Screen name="Explore" component={Explore} />
-                    <Stack.Screen name="ExploreMatch" component={ExploreMatch} />
-                    <Stack.Screen name="Notification" component={Notification} />
-                    <Stack.Screen name="Setting" component={Setting} />
-                    <Stack.Screen name="About" component={About} />
-                    <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
-                    <Stack.Screen name="Plans" component={Plans} />
-                    <Stack.Screen name="Chat" component={Chat} />
-                    <Stack.Screen name="StartCalling" component={StartCalling} />
-                    <Stack.Screen name="CreatePost" component={CreatePost} />
-                    <Stack.Screen name="EditProfile" component={EditProfile} />
-                    <Stack.Screen name="Following" component={Following} />
-                    <Stack.Screen name="Follower" component={Follower} />
-                    <Stack.Screen name="Main" component={BottomTabNavigation} />
-                    <Stack.Screen name="Call" component={Call} />
-                </Stack.Navigator>
-            </NavigationContainer>
+            <CallWrapper>
+                <NavigationContainer ref={navigationRef}>
+                    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={getinitialScreen()}>
+                        <Stack.Screen name="NoInternet" component={NoInternet} />
+                        <Stack.Screen name="OnBoarding1" component={OnBoarding1} />
+                        <Stack.Screen name="Menu" component={Menu} />
+                        <Stack.Screen name="Select" component={Select} />
+                        <Stack.Screen name="Login" component={Login} />
+                        <Stack.Screen name="Otp" component={Otp} />
+                        <Stack.Screen name="TransactionHistory" component={TransactionHistory} />
+                        <Stack.Screen name="CreateProfile" component={CreateProfile} />
+                        <Stack.Screen name="Matching" component={Matching} />
+                        <Stack.Screen name="SelectPartner" component={SelectPartner} />
+                        <Stack.Screen name="Explore" component={Explore} />
+                        <Stack.Screen name="ExploreMatch" component={ExploreMatch} />
+                        <Stack.Screen name="Notification" component={Notification} />
+                        <Stack.Screen name="Setting" component={Setting} />
+                        <Stack.Screen name="About" component={About} />
+                        <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
+                        <Stack.Screen name="Plans" component={Plans} />
+                        <Stack.Screen name="Chat" component={Chat} />
+                        <Stack.Screen name="StartCalling" component={StartCalling} />
+                        <Stack.Screen name="CreatePost" component={CreatePost} />
+                        <Stack.Screen name="EditProfile" component={EditProfile} />
+                        <Stack.Screen name="Following" component={Following} />
+                        <Stack.Screen name="Follower" component={Follower} />
+                        <Stack.Screen name="Main" component={BottomTabNavigation} />
+                        <Stack.Screen name="Call" component={Call} />
+                    </Stack.Navigator>
+                </NavigationContainer>
+            </CallWrapper>
         </SafeAreaProvider>
     )
 }

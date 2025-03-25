@@ -70,6 +70,15 @@ class AuthService extends BaseService {
             return this.handleError(error.message)
         }
     }
+    listenUserId(id, callback){
+        const userRef = this.db.collection(this.#collection).doc(id)
+
+        const unsubscribe = userRef.onSnapshot((snapshot) => {
+            callback(snapshot.data())
+        })
+
+        return unsubscribe
+    }
 }
 
 export default new AuthService('user')
