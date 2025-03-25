@@ -110,7 +110,7 @@ const Login = () => {
                 <Text style={styles.heading}>{isOtpSent ? 'Enter OTP' : 'Continue with Phone Number'}</Text>
                 <Text style={styles.smallText}>{isOtpSent ? 'Please enter the OTP sent to your phone number' : 'A verification code will be sent to this number'}</Text>
                 {!isOtpSent ? (
-                    <View className="my-4">
+                    <View className="my-4 bg-gray-50">
                         <PhoneInput
                             ref={phoneInput}
                             defaultCode={selectedCountryCode.cca2}

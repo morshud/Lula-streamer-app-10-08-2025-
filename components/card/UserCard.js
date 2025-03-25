@@ -8,6 +8,7 @@ import showToast from '../../utils/toast'
 import { handleError } from '../../utils/function'
 import { Fontisto } from '@expo/vector-icons'
 import FollowService from '../../services/FollowService'
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 const UserCard = ({ item }) => {
     const { user } = useSelector((state) => state.auth)
@@ -72,9 +73,8 @@ const UserCard = ({ item }) => {
                 }}
                 style={{zIndex:100}}
             >
-                <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} >
-                    <Fontisto name="hipchat" size={15} color="white" />
-                    <Text style={styles.videoText}>Call Now</Text>
+                <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={styles.callButton}>
+                    <Ionicons name="call-sharp" size={18} color="white" />
                 </LinearGradient>
             </TouchableOpacity>
         </View>
@@ -105,7 +105,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     nameLike: {
-        fontWeight: 'bold',
         fontSize: 16,
     },
     location: {
@@ -129,15 +128,14 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginLeft: 3,
     },
-    videoIcon: {
-        marginLeft: 10,
+    callButton: {
         paddingHorizontal: 8,
-        paddingVertical: 5,
-        backgroundColor: '#6200EE',
-        borderRadius: 4,
-        position: 'absolute',
-        right: 0,
+        paddingVertical: 2,
+        borderRadius: 400,
+        width: 32,
+        height: 32,
         flexDirection: 'row',
+        justifyContent: 'center',
         alignItems: 'center',
     },
 })
