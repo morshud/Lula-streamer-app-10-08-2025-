@@ -52,20 +52,22 @@ const UserCard = ({ item }) => {
                     <Text style={styles.status}>{item.status ? 'Active' : ''}</Text>
                 </LinearGradient>
                 <Text style={styles.nameLike}>{item.name || 'Anonymous User'}</Text>
-                {/* <Text style={styles.location}>{item.location}</Text> */}
+                <View className="gap-2" style={styles.flexView}>
+                    <TouchableOpacity onPress={() => handleFollow()}>
+                        <LinearGradient colors={['#57A10D', '#57A10D']} className="w-20 py-1 rounded-lg">
+                            <Text style={styles.videoText} className="text-center">{follow ? 'Unfollow' : 'Follow'}</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleChat()}>
+                        <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} className="w-20 py-1 rounded-lg">
+                            <Text style={styles.videoText} className="text-center">Chat Now</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </View>
             </View>
 
-            {/* <TouchableOpacity onPress={() => handleFollow()}>
-                <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={[styles.videoIcon, { top: -40 }]}>
-                    <Text style={styles.videoText}>{follow ? 'Unfollow' : 'Follow'}</Text>
-                </LinearGradient>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleChat()}>
-                <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={styles.videoIcon}>
-                    <Fontisto name="hipchat" size={15} color="white" />
-                    <Text style={styles.videoText}>Chat Now</Text>
-                </LinearGradient>
-            </TouchableOpacity> */}
+            
+            
             <TouchableOpacity
                 onPress={() => {
                     console.error('call pressed');
@@ -127,6 +129,9 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 12,
         marginLeft: 3,
+    },
+    flexView: {
+        flexDirection: 'row',
     },
     callButton: {
         paddingHorizontal: 8,
