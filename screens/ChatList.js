@@ -53,7 +53,7 @@ const ChatList = () => {
             <TouchableOpacity style={styles.chatItem} onPress={() => navigation.navigate('Chat', { chatId: item.id })}>
                 <Image source={item.user?.profileUri ? { uri: item.user.profileUri } : require('../assets/images/avatar.png')} style={styles.image} />
                 <View style={styles.textContainer}>
-                    <Text style={styles.name}>{item.user?.name || 'Anonymose User'}</Text>
+                    <Text style={styles.name}>{item.user?.name || 'Anonymous User'}</Text>
                     <Text style={styles.message}>{item.lastMessage}</Text>
                 </View>
                 <Text style={styles.time}>{formatDate(item.updatedAt)}</Text>
