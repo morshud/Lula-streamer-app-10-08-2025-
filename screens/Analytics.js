@@ -1,64 +1,44 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { FontAwesome, MaterialIcons} from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useState } from 'react'
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Dimensions } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import { PieChart } from 'react-native-chart-kit'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
+import HomeService from '../services/HomeService'
+import { useSelector } from 'react-redux'
+import { handleError } from '../utils/function'
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get('window')
 
 export default function Analytics() {
-    const navigation = useNavigation();
+    const { user } = useSelector((state) => state.auth)
+    const navigation = useNavigation()
+    const [pieData, setPieData] = useState([])
+    const [states, setStates] = useState(null)
 
-    // Growth metrics data
-    const growthData = [
-        { title: 'Followers', value: 1234, growth: 12.5, positive: true },
-        { title: 'Following', value: 567, growth: -3.2, positive: false },
-        { title: 'Streams', value: 98, growth: 24.7, positive: true },
-        { title: 'Chats', value: 87, growth: 5.3, positive: true },
-    ];
+    const fetchData = async () => {
+        try {
+            const res = await HomeService.getLastFourWeeksEarnings(user.id)
 
+            const statesCounts = await HomeService.getHomeCounts(user.id);
 
-    // Pie chart data
-    const pieChartData = [
-        {
-            name: 'Mobile',
-            population: 65,
-            color: 'rgba(97, 86, 226, 1)',
-            legendFontColor: '#7F7F7F',
-            legendFontSize: 12,
-        },
-        {
-            name: 'Desktop',
-            population: 25,
-            color: 'rgba(171, 73, 161, 0.8)',
-            legendFontColor: '#7F7F7F',
-            legendFontSize: 12,
-        },
-        {
-            name: 'Tablet',
-            population: 10,
-            color: '#F1B5CB',
-            legendFontColor: '#7F7F7F',
-            legendFontSize: 12,
-        },
-    ];
+            setStates(statesCounts.data);
 
-    // Audience demographics data
-    const audienceData = [
-        { age: '18-24', percentage: 35 },
-        { age: '25-34', percentage: 45 },
-        { age: '35-44', percentage: 15 },
-        { age: '45+', percentage: 5 },
-    ];
+            setPieData(res)
+        } catch (error) {
+            handleError(error)
+        }
+    }
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchData()
+        }, [])
+    )
 
     return (
         <SafeAreaView style={styles.container}>
-            <LinearGradient
-                colors={['rgba(171, 73, 161, 0.9)', 'rgba(97, 86, 226, 0.9)']}
-                style={styles.gradient}
-            >
+            <LinearGradient colors={['rgba(171, 73, 161, 0.9)', 'rgba(97, 86, 226, 0.9)']} style={styles.gradient}>
                 <View style={styles.header}>
                     <View>
                         <Text style={styles.headerTitle}>Analytics Dashboard</Text>
@@ -66,7 +46,9 @@ export default function Analytics() {
                     <View style={styles.headerIcons}>
                         <TouchableOpacity onPress={() => navigation.navigate('StreamerProfile')}>
                             <Image
-                                source={{ uri: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80' }}
+                                source={{
+                                    uri: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
+                                }}
                                 style={styles.avatar}
                             />
                         </TouchableOpacity>
@@ -76,43 +58,45 @@ export default function Analytics() {
                 <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                     {/* Growth metrics */}
                     <View style={styles.metricsContainer}>
-                        {growthData.map((item, index) => (
-                            <View key={index} style={styles.metricCard}>
+                        
+                            <View  style={styles.metricCard}>
                                 <View style={styles.metricHeader}>
-                                    <Text style={styles.metricTitle}>{item.title}</Text>
-                                    {item.positive ? (
-                                        <MaterialIcons name="arrow-upward" size={16} color="#4CAF50" />
-                                    ) : (
-                                        <MaterialIcons name="arrow-downward" size={16} color="#F44336" />
-                                    )}
+                                    <Text style={styles.metricTitle}>Followers</Text>
                                 </View>
-                                <Text style={styles.metricValue}>{item.value}</Text>
-                                <View style={styles.metricGrowth}>
-                                    <Text
-                                        style={[
-                                            styles.metricGrowthText,
-                                            { color: item.positive ? '#4CAF50' : '#F44336' },
-                                        ]}
-                                    >
-                                        {item.positive ? '+' : ''}{item.growth}%
-                                    </Text>
-                                    <Text style={styles.metricPeriod}>vs last period</Text>
-                                </View>
+                                <Text style={styles.metricValue}>{states?.followers}</Text>
                             </View>
-                        ))}
+                            <View  style={styles.metricCard}>
+                                <View style={styles.metricHeader}>
+                                    <Text style={styles.metricTitle}>Following</Text>
+                                </View>
+                                <Text style={styles.metricValue}>{states?.following}</Text>
+                            </View>
+                            <View  style={styles.metricCard}>
+                                <View style={styles.metricHeader}>
+                                    <Text style={styles.metricTitle}>Chats</Text>
+                                </View>
+                                <Text style={styles.metricValue}>{states?.chats}</Text>
+                            </View>
+                            <View  style={styles.metricCard}>
+                                <View style={styles.metricHeader}>
+                                    <Text style={styles.metricTitle}>Total Earning</Text>
+                                </View>
+                                <Text style={styles.metricValue}>{states?.totalEarnings} Coins</Text>
+                            </View>
+                        
                     </View>
 
                     {/* Device distribution */}
                     <View style={styles.chartCard}>
                         <View style={styles.chartHeader}>
                             <View>
-                                <Text style={styles.chartTitle}>Device Distribution</Text>
-                                <Text style={styles.chartSubtitle}>Where your audience watches from</Text>
+                                <Text style={styles.chartTitle}>Month Overview</Text>
+                                <Text style={styles.chartSubtitle}>Your Current month revenue.</Text>
                             </View>
                         </View>
                         <View style={styles.pieChartContainer}>
                             <PieChart
-                                data={pieChartData}
+                                data={pieData}
                                 width={width - 50}
                                 height={200}
                                 chartConfig={{
@@ -129,46 +113,12 @@ export default function Analytics() {
                         </View>
                     </View>
 
-                    {/* Age demographics */}
-                    <View style={styles.chartCard}>
-                        <View style={styles.chartHeader}>
-                            <View>
-                                <Text style={styles.chartTitle}>Age Demographics</Text>
-                                <Text style={styles.chartSubtitle}>Age distribution of your audience</Text>
-                            </View>
-                            <View style={styles.chartIcon}>
-                                <FontAwesome name="users" size={20} color="#6156e2" />
-                            </View>
-                        </View>
-                        <View style={styles.demographicsContainer}>
-                            {audienceData.map((item, index) => (
-                                <View key={index} style={styles.demographicItem}>
-                                    <Text style={styles.demographicAge}>{item.age}</Text>
-                                    <View style={styles.demographicBarContainer}>
-                                        <View
-                                            style={[
-                                                styles.demographicBar,
-                                                { width: `${item.percentage}%` }
-                                            ]}
-                                        />
-                                    </View>
-                                    <Text style={styles.demographicPercentage}>{item.percentage}%</Text>
-                                </View>
-                            ))}
-                        </View>
-                    </View>
-
-                    {/* Top content */}
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Top Performing Content</Text>
-                    </View>
-
                     {/* Bottom spacing */}
                     <View style={{ height: 30 }} />
                 </ScrollView>
             </LinearGradient>
         </SafeAreaView>
-    );
+    )
 }
 
 const styles = StyleSheet.create({
@@ -436,4 +386,4 @@ const styles = StyleSheet.create({
         color: '#555',
         lineHeight: 20,
     },
-});
+})

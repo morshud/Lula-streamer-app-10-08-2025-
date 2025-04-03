@@ -47,7 +47,6 @@ const BottomTabNavigation = () => {
 
   return (
     <Tab.Navigator
-      initialRouteName={null}
       screenOptions={{
         tabBarShowLabel: false,
         headerShown: false,
@@ -105,6 +104,7 @@ const BottomTabNavigation = () => {
             />
           ),
         }}
+        
       />
       <Tab.Screen
         name="LiveStreaming"
