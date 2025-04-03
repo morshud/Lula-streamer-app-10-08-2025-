@@ -4,7 +4,9 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useNavigation } from '@react-navigation/native'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import UserService from '../services/UserService'
+import AuthService from '../services/AuthService'
 import UserCard from '../components/card/UserCard'
+import { useSelector } from 'react-redux'
 
 const Users = () => {
     const navigation = useNavigation()
@@ -39,6 +41,34 @@ const Users = () => {
         fetchUsers()
     }, [])
 
+
+
+
+
+    const { user } = useSelector((state) => state.auth)
+    const [data, setData] = useState(null)
+    const [isLoading, setIsLoading] = useState(true)
+
+    useEffect(() => {
+        const getData = async () => {
+            try {
+                setIsLoading(true)
+                const res = await AuthService.getUser(user.id)
+                if (!res.error) {
+                    setData(res.user)
+                }
+            } catch (error) {
+                handleError(error)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        getData()
+    }, [])
+
+
+
+
     return (
         <LinearGradient colors={['rgba(171, 73, 161, 0.9)', 'rgba(97, 86, 226, 0.9)']} style={styles.gradient}>
             <View style={styles.header}>
@@ -48,7 +78,7 @@ const Users = () => {
                         <MaterialIcons name="analytics" size={29} color="#fff" />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => navigation.navigate('StreamerProfile')}>
-                        <Image source={require('../assets/images/men.png')} style={styles.headerIconsImage} />
+                        <Image source={data?.profileUri ? { uri: data?.profileUri } : require('../assets/images/avatar.png')} style={styles.headerIconsImage} />
                     </TouchableOpacity>
                 </View>
             </View>

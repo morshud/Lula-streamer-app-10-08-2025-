@@ -49,16 +49,16 @@ const ChatList = () => {
     }, [])
 
     // Render each chat item in FlatList
-        const renderChatItem = ({ item }) => (
-            <TouchableOpacity style={styles.chatItem} onPress={() => navigation.navigate('Chat', { chatId: item.id })}>
-                <Image source={item.user?.profileUri ? { uri: item.user.profileUri } : require('../assets/images/avatar.png')} style={styles.image} />
-                <View style={styles.textContainer}>
-                    <Text style={styles.name}>{item.user?.name || 'Anonymose User'}</Text>
-                    <Text style={styles.message}>{item.lastMessage}</Text>
-                </View>
-                <Text style={styles.time}>{formatDate(item.updatedAt)}</Text>
-            </TouchableOpacity>
-        )
+    const renderChatItem = ({ item }) => (
+        <TouchableOpacity style={styles.chatItem} onPress={() => navigation.navigate('Chat', { chatId: item.id })}>
+            <Image source={item.user?.profileUri ? { uri: item.user.profileUri } : require('../assets/images/avatar.png')} style={styles.image} />
+            <View style={styles.textContainer}>
+                <Text style={styles.name}>{item.user?.name || 'Anonymous User'}</Text>
+                <Text style={styles.message}>{item.lastMessage}</Text>
+            </View>
+            <Text style={styles.time}>{formatDate(item.updatedAt)}</Text>
+        </TouchableOpacity>
+    )
 
     return (
         <LinearGradient colors={['rgba(171, 73, 161, 0.9)', 'rgba(97, 86, 226, 0.9)']} style={styles.gradient}>
@@ -81,7 +81,7 @@ const ChatList = () => {
                     // onEndReached={fetchChats} // Load more chats when reaching the end
                     // onEndReachedThreshold={0.5} // Threshold for triggering `onEndReached`
                     style={styles.messagesContent}
-                    ListFooterComponent={loading ? <Text>Loading...</Text> : null} // Show loading indicator while fetching
+                    ListFooterComponent={loading ? <View style={styles.loading}><Text>Loading...</Text></View> : null} // Show loading indicator while fetching
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
                 />
@@ -93,6 +93,12 @@ const ChatList = () => {
 const styles = StyleSheet.create({
     gradient: {
         flex: 1,
+    },
+    loading: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 50,
     },
     header: {
         width: '100%',
