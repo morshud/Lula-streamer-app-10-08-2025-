@@ -101,7 +101,7 @@ function Posts() {
     );
 }
 
-const StreamerProfile = () => {
+const StreamerProfile = ()  => {
     const { user } = useSelector((state) => state.auth)
     const navigation = useNavigation()
     const [data, setData] = useState(null)
