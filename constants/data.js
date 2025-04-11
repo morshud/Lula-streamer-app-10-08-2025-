@@ -19,4 +19,9 @@ export const tradeAndTechProfessions = [
 ]
 
 
+export const callType = {
+    INCOMING: 'INCOMING',
+    OUTGOING: 'OUTGOING',
+}
+
 

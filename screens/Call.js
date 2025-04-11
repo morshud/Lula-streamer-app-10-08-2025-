@@ -8,6 +8,9 @@ import AuthService from '../services/AuthService'
 import { handleError } from '../utils/function'
 import uuid from 'react-native-uuid'
 import { useSelector } from 'react-redux'
+import { callType } from '../constants/data'
+
+
 
 const CallRoom = ({ call, endCall }) => {
     const navigation = useNavigation()
@@ -41,7 +44,7 @@ const CallComponent = () => {
     const { user } = useSelector((state) => state.auth)
     const navigation = useNavigation()
     const {
-        params: { userId, id },
+        params: { userId, id,end },
     } = useRoute()
     const client = useStreamVideoClient()
     const [call, setCall] = useState(null)
@@ -50,11 +53,19 @@ const CallComponent = () => {
     const handleCall = async (callId) => {
         try {
             const res = await AuthService.getUser(userId)
-
+            console.log(res);
+            
             if (res?.user?.currentCall) {
                 return { error: true, message: 'User Already on another Call!' }
             }
-            await Promise.all([AuthService.update(userId, { currentCall: callId }), AuthService.update(user?.id, { currentCall: callId })])
+
+            await Promise.all([
+                AuthService.update(userId, { currentCall: { callId, type: callType.INCOMING } }),
+                AuthService.update(user?.id, { currentCall: { callId, type: callType.OUTGOING } }),
+            ])
+
+            console.log("Call Initiated");
+            
             return { error: false, message: 'Call Created!' }
         } catch (error) {
             handleError(error)
@@ -69,8 +80,11 @@ const CallComponent = () => {
         const joinOrCreateCall = async () => {
             let slug
             if (id) {
-                slug = id.toString()
+                slug = id.callId.toString()
                 const _call = client.call('default', slug)
+                if (end) {
+                    await Promise.all([_call.endCall(),endCall()])  
+                }
                 _call.join({ create: false }).then(() => {
                     setCall(_call)
                 })
@@ -100,6 +114,10 @@ const CallComponent = () => {
             }
         }
     }, [client, id])
+
+    if (end) {
+        return null
+    }
 
     if (!call || !slug) {
         return (

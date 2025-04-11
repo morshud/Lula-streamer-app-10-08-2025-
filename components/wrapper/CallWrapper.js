@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AuthService from '../../services/AuthService';
 import { navigate } from '../../navigations/RootNavigation';
+import { callType } from '../../constants/data';
 
 const { height } = Dimensions.get('window');
 
@@ -20,8 +21,8 @@ const CallWrapper = ({ children }) => {
             if (!data?.currentCall) return;
 
             setCurrentCall((prevCall) => {
-                if (prevCall !== data.currentCall) {
-                    setModalVisible(true);
+                if (prevCall?.callId !== data?.currentCall?.callId) {
+                    setModalVisible(data.currentCall.type === callType.INCOMING);
                     return data.currentCall;
                 }
                 return prevCall;
@@ -38,7 +39,7 @@ const CallWrapper = ({ children }) => {
 
     const handleDecline = () => {
         setModalVisible(false);
-        setCurrentCall(null);
+        navigate('Call', { id: currentCall, end: true })
     };
 
     return (
