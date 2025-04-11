@@ -18,12 +18,16 @@ const CallWrapper = ({ children }) => {
         if (!user) return;
 
         const unsubscribe = AuthService.listenUserId(user.id, (data) => {
-            if (!data?.currentCall) return;
+            // if (!data?.currentCall) return;
 
             setCurrentCall((prevCall) => {
                 if (prevCall?.callId !== data?.currentCall?.callId) {
                     setModalVisible(data.currentCall.type === callType.INCOMING);
                     return data.currentCall;
+                }
+                if (prevCall?.callId && !data.currentCall) {
+                    setModalVisible(false)
+                    return null
                 }
                 return prevCall;
             });

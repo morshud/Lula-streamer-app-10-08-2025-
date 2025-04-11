@@ -1,4 +1,4 @@
-import { ActivityIndicator, View } from 'react-native'
+import { ActivityIndicator, Modal, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { StreamVideo, useStreamVideoClient, CallingState, CallContent, StreamCall, useCallStateHooks } from '@stream-io/video-react-native-sdk'
 import { useNavigation, useRoute } from '@react-navigation/native'
@@ -10,12 +10,12 @@ import uuid from 'react-native-uuid'
 import { useSelector } from 'react-redux'
 import { callType } from '../constants/data'
 
-
-
 const CallRoom = ({ call, endCall }) => {
     const navigation = useNavigation()
-    const { useCallCallingState } = useCallStateHooks()
+    const [isWaiting, setIsWaiting] = useState(true)
+    const { useCallCallingState, useParticipantCount } = useCallStateHooks()
     const callState = useCallCallingState()
+    const count = useParticipantCount()
 
     useEffect(() => {
         if (callState === CallingState.LEFT) {
@@ -25,9 +25,27 @@ const CallRoom = ({ call, endCall }) => {
         }
     }, [callState])
 
+    useEffect(() => {
+        if (count >= 2) {
+            setIsWaiting(false)
+        } else {
+            setIsWaiting(true)
+        }
+    }, [count])
+
     return (
         <View style={{ flex: 1 }}>
             <GestureHandlerRootView style={{ flex: 1 }}>
+                {isWaiting && (
+                    <Modal transparent visible animationType="fade">
+                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                            <View style={{ padding: 20, backgroundColor: 'white', borderRadius: 10 }}>
+                                <ActivityIndicator size="large" />
+                                <Text style={{ marginTop: 10, textAlign: 'center' }}>Waiting for other participant to join...</Text>
+                            </View>
+                        </View>
+                    </Modal>
+                )}
                 <CallContent
                     onHangupCallHandler={() => {
                         navigation.goBack()
@@ -44,7 +62,7 @@ const CallComponent = () => {
     const { user } = useSelector((state) => state.auth)
     const navigation = useNavigation()
     const {
-        params: { userId, id,end },
+        params: { userId, id, end },
     } = useRoute()
     const client = useStreamVideoClient()
     const [call, setCall] = useState(null)
@@ -53,8 +71,8 @@ const CallComponent = () => {
     const handleCall = async (callId) => {
         try {
             const res = await AuthService.getUser(userId)
-            console.log(res);
-            
+            console.log(res)
+
             if (res?.user?.currentCall) {
                 return { error: true, message: 'User Already on another Call!' }
             }
@@ -64,8 +82,8 @@ const CallComponent = () => {
                 AuthService.update(user?.id, { currentCall: { callId, type: callType.OUTGOING } }),
             ])
 
-            console.log("Call Initiated");
-            
+            console.log('Call Initiated')
+
             return { error: false, message: 'Call Created!' }
         } catch (error) {
             handleError(error)
@@ -73,7 +91,13 @@ const CallComponent = () => {
     }
 
     const endCall = async () => {
+        console.log('end call function')
+
         await Promise.all([AuthService.update(userId, { currentCall: '' }), AuthService.update(user.id, { currentCall: '' })])
+        call?.endCall()
+        if (navigation.canGoBack()) {
+            navigation.goBack()
+        }
     }
 
     useEffect(() => {
@@ -83,7 +107,7 @@ const CallComponent = () => {
                 slug = id.callId.toString()
                 const _call = client.call('default', slug)
                 if (end) {
-                    await Promise.all([_call.endCall(),endCall()])  
+                    await Promise.all([_call.endCall(), endCall()])
                 }
                 _call.join({ create: false }).then(() => {
                     setCall(_call)
@@ -109,6 +133,8 @@ const CallComponent = () => {
 
         return () => {
             if (call?.state.callState !== CallingState.LEFT) {
+                console.log('effect return')
+
                 call?.endCall()
                 endCall()
             }
