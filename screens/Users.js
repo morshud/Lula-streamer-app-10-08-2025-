@@ -91,6 +91,7 @@ const Users = () => {
                     renderItem={({ item }) => <UserCard item={item} />}
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
+                    contentContainerStyle={{paddingBottom:80}}
                 />
             </View>
         </LinearGradient>

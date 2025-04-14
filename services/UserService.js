@@ -19,7 +19,8 @@ class UserService extends BaseService {
     async getUsers(limit = 10, lastVisible = null) {
         try {
             let query = this.db.collection(this.#collection)
-                .where('role', '==', 'USER') // Filter users by 'USER' role
+                .where('role', '==', 'USER')
+                .where('isDeleted', '==', false)
                 .limit(limit);
 
             // If we have a lastVisible document, use startAfter for pagination
