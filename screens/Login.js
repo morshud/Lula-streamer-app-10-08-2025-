@@ -91,7 +91,7 @@ const Login = () => {
                 showToast('Phone number verified successfully!', 'success')
                 navigation.reset({ index: 0, routes: [{ name: res.user.profileCompleted ? 'Main' : 'CreateProfile' }] })
             } else {
-                showToast('Failed to verify OTP')
+                showToast(res.message)
             }
         } catch (error) {
             handleError(error)
@@ -103,9 +103,11 @@ const Login = () => {
     return (
         <LinearGradient colors={['rgba(97, 86, 226, 0.9)', 'rgba(171, 73, 161, 0.9)', 'rgba(171, 73, 161, 0.9)', 'rgba(171, 73, 161, 0.9)']} style={styles.gradient}>
             <Loading isVisible={isSubmitting} />
-            <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
-                <MaterialIcons name="keyboard-backspace" size={25} color="white" />
-            </TouchableOpacity>
+            {isOtpSent && (
+                <TouchableOpacity style={styles.back} onPress={() => setIsOtpSent(false)}>
+                    <MaterialIcons name="keyboard-backspace" size={25} color="white" />
+                </TouchableOpacity>
+            )}
             <View style={styles.content}>
                 <Text style={styles.heading}>{isOtpSent ? 'Enter OTP' : 'Continue with Phone Number'}</Text>
                 <Text style={styles.smallText}>{isOtpSent ? 'Please enter the OTP sent to your phone number' : 'A verification code will be sent to this number'}</Text>

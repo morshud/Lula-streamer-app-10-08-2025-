@@ -34,6 +34,12 @@ class AuthService extends BaseService {
 
             if (doc.exists) {
                 // If the user already exists, return the existing document
+
+                const myData = this.fromFirestore(doc)
+
+                if (myData.role !== 'STREAMER') {
+                    return { error: true, message: 'This Phone Number is Registered With other Platform' }
+                }
                 return { error: false, user: this.fromFirestore(doc) } // Return the existing user data
             } else {
                 // If the user does not exist, create a new document for the user
@@ -43,13 +49,13 @@ class AuthService extends BaseService {
                     status: true,
                     isDeleted: false,
                     profileCompleted: false,
-                    id:user.uid,
+                    id: user.uid,
                 }
 
                 // Save user data to Firestore
                 await userRef.set(this.toFirestore(userData))
-                const data =  await userRef.get()
-                return { error: false, user:this.fromFirestore(data) }
+                const data = await userRef.get()
+                return { error: false, user: this.fromFirestore(data) }
             }
         } catch (error) {
             console.error('Error verifying OTP:', error)
@@ -70,7 +76,7 @@ class AuthService extends BaseService {
             return this.handleError(error.message)
         }
     }
-    listenUserId(id, callback){
+    listenUserId(id, callback) {
         const userRef = this.db.collection(this.#collection).doc(id)
 
         const unsubscribe = userRef.onSnapshot((snapshot) => {
