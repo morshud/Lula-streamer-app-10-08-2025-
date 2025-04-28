@@ -9,6 +9,7 @@ import { handleError } from '../../utils/function'
 import { Fontisto } from '@expo/vector-icons'
 import FollowService from '../../services/FollowService'
 import Ionicons from '@expo/vector-icons/Ionicons';
+import AuthService from '../../services/AuthService'
 
 const UserCard = ({ item }) => {
     const { user } = useSelector((state) => state.auth)
@@ -44,6 +45,19 @@ const UserCard = ({ item }) => {
         }
     }
 
+    const handleCall = async (userId) => {
+        try {
+            const res = await AuthService.getUser(item.id);
+            if (res.error) {
+                throw new Error(res.message)
+            }
+            navigation.navigate('Call', { userId })
+
+        } catch (error) {
+            handleError(error)
+        }
+    }
+
     return (
         <View style={styles.likeItem}>
             <Image source={item.profileUri ? { uri: item.profileUri } : require('../../assets/images/avatar.png')} style={styles.imageLike} />
@@ -69,10 +83,11 @@ const UserCard = ({ item }) => {
             
             
             <TouchableOpacity
-                onPress={() => {
-                    console.error('call pressed');
-                    navigation.navigate('Call', { userId:item.id })
-                }}
+                // onPress={() => {
+                //     console.error('call pressed');
+                //     navigation.navigate('Call', { userId:item.id })
+                // }}
+                onPress={() => handleCall(item?.id)}
                 style={{zIndex:100}}
             >
                 <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={styles.callButton}>

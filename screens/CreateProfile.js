@@ -12,6 +12,7 @@ import AuthService from '../services/AuthService'
 import showToast from '../utils/toast'
 import { setUser } from '../store/slices/auth'
 import Loading from '../components/shared/Loading'
+import { launchImagePicker } from '../utils/ImagePickerHelper'
 
 const { width } = Dimensions.get('window')
 
@@ -89,18 +90,11 @@ export default function CreateProfile() {
     }
 
     const pickImage = async () => {
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 1,
-        })
+        const result = await launchImagePicker()
 
-        if (!result.canceled) {
-            console.log('Selected image URI:', result.assets[0].uri)
-            setProfileImage(result.assets[0].uri)
-        } else {
-            console.log('Image selection was canceled')
+        if (result.uri) {
+            console.log('Selected image URI:', result.uri)
+            setProfileImage(result.uri)
         }
     }
 
