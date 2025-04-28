@@ -1,10 +1,11 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState, useEffect } from 'react'
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Dimensions } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { PieChart } from 'react-native-chart-kit'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import HomeService from '../services/HomeService'
+import AuthService from '../services/AuthService' // Import AuthService to fetch user data
 import { useSelector } from 'react-redux'
 import { handleError } from '../utils/function'
 
@@ -15,7 +16,25 @@ export default function Analytics() {
     const navigation = useNavigation()
     const [pieData, setPieData] = useState([])
     const [states, setStates] = useState(null)
+    const [userData, setUserData] = useState(null) // State to store user profile data
+    const [isLoading, setIsLoading] = useState(true) // Loading state for user data
 
+    // Fetch user profile data
+    const fetchUserData = async () => {
+        try {
+            setIsLoading(true)
+            const res = await AuthService.getUser(user.id)
+            if (!res.error) {
+                setUserData(res.user)
+            }
+        } catch (error) {
+            handleError(error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    // Fetch analytics data
     const fetchData = async () => {
         try {
             const res = await HomeService.getLastFourWeeksEarnings(user.id)
@@ -28,8 +47,10 @@ export default function Analytics() {
         }
     }
 
+    // Fetch user data and analytics data when screen is focused
     useFocusEffect(
         useCallback(() => {
+            fetchUserData()
             fetchData()
         }, [])
     )
@@ -44,9 +65,11 @@ export default function Analytics() {
                     <View style={styles.headerIcons}>
                         <TouchableOpacity onPress={() => navigation.navigate('StreamerProfile')}>
                             <Image
-                                source={{
-                                    uri: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
-                                }}
+                                source={
+                                    userData?.profileUri
+                                        ? { uri: userData.profileUri }
+                                        : require('../assets/images/avatar.png') // Fallback image
+                                }
                                 style={styles.avatar}
                             />
                         </TouchableOpacity>
