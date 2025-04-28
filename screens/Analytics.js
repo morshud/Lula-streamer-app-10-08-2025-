@@ -19,11 +19,9 @@ export default function Analytics() {
     const fetchData = async () => {
         try {
             const res = await HomeService.getLastFourWeeksEarnings(user.id)
+            const statesCounts = await HomeService.getHomeCounts(user.id)
 
-            const statesCounts = await HomeService.getHomeCounts(user.id);
-
-            setStates(statesCounts.data);
-
+            setStates(statesCounts.data)
             setPieData(res)
         } catch (error) {
             handleError(error)
@@ -58,32 +56,36 @@ export default function Analytics() {
                 <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                     {/* Growth metrics */}
                     <View style={styles.metricsContainer}>
-                        
-                            <View  style={styles.metricCard}>
-                                <View style={styles.metricHeader}>
-                                    <Text style={styles.metricTitle}>Followers</Text>
-                                </View>
-                                <Text style={styles.metricValue}>{states?.followers}</Text>
+                        <View style={styles.metricCard}>
+                            <View style={styles.metricHeader}>
+                                <Text style={styles.metricTitle}>Followers</Text>
                             </View>
-                            <View  style={styles.metricCard}>
-                                <View style={styles.metricHeader}>
-                                    <Text style={styles.metricTitle}>Following</Text>
-                                </View>
-                                <Text style={styles.metricValue}>{states?.following}</Text>
+                            <Text style={styles.metricValue}>{states?.followers ?? 'N/A'}</Text>
+                        </View>
+                        <View style={styles.metricCard}>
+                            <View style={styles.metricHeader}>
+                                <Text style={styles.metricTitle}>Following</Text>
                             </View>
-                            <View  style={styles.metricCard}>
-                                <View style={styles.metricHeader}>
-                                    <Text style={styles.metricTitle}>Chats</Text>
-                                </View>
-                                <Text style={styles.metricValue}>{states?.chats}</Text>
+                            <Text style={styles.metricValue}>{states?.following ?? 'N/A'}</Text>
+                        </View>
+                        <View style={styles.metricCard}>
+                            <View style={styles.metricHeader}>
+                                <Text style={styles.metricTitle}>Chats</Text>
                             </View>
-                            <View  style={styles.metricCard}>
-                                <View style={styles.metricHeader}>
-                                    <Text style={styles.metricTitle}>Total Earning</Text>
-                                </View>
-                                <Text style={styles.metricValue}>{states?.totalEarnings} Coins</Text>
+                            <Text style={styles.metricValue}>{states?.chats ?? 'N/A'}</Text>
+                        </View>
+                        <View style={styles.metricCard}>
+                            <View style={styles.metricHeader}>
+                                <Text style={styles.metricTitle}>Minutes Talked</Text>
                             </View>
-                        
+                            <Text style={styles.metricValue}>00</Text>
+                        </View>
+                        <View style={styles.metricCard2}>
+                            <View style={styles.metricHeader}>
+                                <Text style={styles.metricTitle}>Total Earnings</Text>
+                            </View>
+                            <Text style={styles.metricValue}>{states?.totalEarnings ?? 0} Coins</Text>
+                        </View>
                     </View>
 
                     {/* Device distribution */}
@@ -206,6 +208,15 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         padding: 15,
         width: '48%',
+        marginBottom: 15,
+        borderWidth: 1,
+        borderColor: '#EEE',
+    },
+    metricCard2: {
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        padding: 15,
+        width: '100%',
         marginBottom: 15,
         borderWidth: 1,
         borderColor: '#EEE',
