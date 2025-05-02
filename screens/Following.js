@@ -14,6 +14,7 @@ export default function Following() {
     const [following, setFollowing] = useState([])
     const [isLoading, setIsLoading] = useState(true)
 
+
     useEffect(() => {
         const getFollowers = async () => {
             try {
@@ -51,17 +52,17 @@ export default function Following() {
                         <TouchableOpacity onPress={() => navigation.goBack()}>
                             <Ionicons name="arrow-back-sharp" size={24} color="black" />
                         </TouchableOpacity>
-                        <Text className="text-xl font-bold mx-auto">Followers</Text>
+                        <Text className="text-xl font-bold mx-auto">Following</Text>
                     </View>
 
                     {/* Search Bar */}
                     <View className="px-4">
-                        <TextInput className="w-full p-3 bg-gray-200 rounded-lg" placeholder="Search Followers..." value={search} onChangeText={setSearch} />
+                        <TextInput className="w-full p-3 bg-gray-200 rounded-lg" placeholder="Search Following..." value={search} onChangeText={setSearch} />
                     </View>
 
                     {/* Followers List */}
                     <FlatList
-                        data={following.filter((f) => f.name.toLowerCase().includes(search.toLowerCase()))}
+                        data={following.filter((f) => search? f.name? f.name.toLowerCase().includes(search.toLowerCase()) : false : f)}
                         keyExtractor={(item) => item.id}
                         ListEmptyComponent={() => (
                             <View className="items-center justify-center mt-20">

@@ -79,19 +79,20 @@ class FollowService extends BaseService {
     // Get list of users that a user is following
     async getFollowing(userId) {
         try {
+            
             const userDoc = await this.db.collection('user').doc(userId).get()
             if (!userDoc.exists) return { error: true, message: "User Not Found" }
-
+            
             const followingIds = userDoc.data().following || []
+            console.log(followingIds);
 
             if (followingIds.length === 0) {
                 return { error: false, following:[] }
             }
 
             const followerSnapshot = await this.db.collection('user').where('id', 'in', followingIds).get()
-
+            
             const following = followerSnapshot.docs.map((item) => this.fromFirestore(item))
-
             return { error: false, following, }
         } catch (error) {
             return this.handleError(error.message)
