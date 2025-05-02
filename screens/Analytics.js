@@ -108,6 +108,11 @@ export default function Analytics() {
                                 <Text style={styles.metricTitle}>Total Earnings</Text>
                             </View>
                             <Text style={styles.metricValue}>{states?.totalEarnings ?? 0} Coins</Text>
+                            <TouchableOpacity onPress={() => navigation.navigate('Withdraw')} style={styles.videoTextDiv}>
+                                <LinearGradient colors={['#57A10D', '#57A10D']} className="w-20 py-1 rounded-md">
+                                    <Text style={styles.videoText} className="text-center">Withdraw</Text>
+                                </LinearGradient>
+                            </TouchableOpacity>
                         </View>
                     </View>
 
@@ -243,6 +248,17 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         borderWidth: 1,
         borderColor: '#EEE',
+        position: 'relative',
+    },
+    videoTextDiv: {
+        position: 'absolute',
+        right: 15,
+        bottom: 15,
+    },
+    videoText: {
+        color: 'white',
+        fontSize: 12,
+        marginLeft: 3,
     },
     metricHeader: {
         flexDirection: 'row',

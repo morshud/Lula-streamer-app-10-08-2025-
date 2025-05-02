@@ -28,6 +28,7 @@ import EditProfile from './EditProfile'
 import StreamerProfile from './StreamerProfile'
 import Menu from './Menu'
 import CreatePost from "./CreatePost"
+import Withdraw from "./Withdraw"
 
 export {
     NoInternet,
@@ -57,4 +58,5 @@ export {
     Following,
     Follower,
     Call,
+    Withdraw,
 }

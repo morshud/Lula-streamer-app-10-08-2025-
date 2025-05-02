@@ -36,6 +36,7 @@ import {
     Following,
     Follower,
     Call,
+    Withdraw,
 } from '../screens'
 import { handleError } from '../utils/function'
 import AuthService from '../services/AuthService'
@@ -178,6 +179,7 @@ const AppNavigation = () => {
                         <Stack.Screen name="Follower" component={Follower} />
                         <Stack.Screen name="Main" component={BottomTabNavigation} />
                         <Stack.Screen name="Call" component={Call} />
+                        <Stack.Screen name="Withdraw" component={Withdraw} />
                     </Stack.Navigator>
                 </NavigationContainer>
             </CallWrapper>
