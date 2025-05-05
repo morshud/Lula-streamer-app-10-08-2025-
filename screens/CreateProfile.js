@@ -64,27 +64,27 @@ export default function CreateProfile() {
                 return
             }
             setIsSubmitting(true)
-            const profileUri = await AuthService.uploadFiles(profileImage,"lula/streamer/profile")
+            const profileUri = await AuthService.uploadFiles(profileImage, "lula/streamer/profile")
 
-            const body =  {
+            const body = {
                 ...formData,
                 profileUri,
-                profileCompleted:true,
+                profileCompleted: true,
             }
 
-            const res = await AuthService.update(user.id,body)
+            const res = await AuthService.update(user.id, body)
 
             if (res.success) {
                 const res = await AuthService.getUser(user.id)
                 dispatch(setUser(res.user))
-                showToast(res.message,"success")
-                navigation.reset({index:0,routes:[{name:"Main"}]})
-            }else{
+                showToast(res.message, "success")
+                navigation.reset({ index: 0, routes: [{ name: "Main" }] })
+            } else {
                 showToast(res.message)
             }
         } catch (error) {
             handleError(error)
-        }finally{
+        } finally {
             setIsSubmitting(false)
         }
     }
@@ -100,7 +100,6 @@ export default function CreateProfile() {
 
     const handleChange = (field, value) => {
         if (field === 'selectedLanguages') {
-            // Handle language selection toggle
             setFormData((prevState) => {
                 const updatedLanguages = prevState.selectedLanguages.includes(value)
                     ? prevState.selectedLanguages.filter((lang) => lang !== value)
@@ -109,7 +108,6 @@ export default function CreateProfile() {
                 return { ...prevState, selectedLanguages: updatedLanguages }
             })
         } else {
-            // Handle form input fields
             setFormData((prevState) => ({
                 ...prevState,
                 [field]: value,
@@ -117,11 +115,36 @@ export default function CreateProfile() {
         }
     }
 
+    const calculateAge = () => {
+        if (!formData.birthYear || !formData.birthMonth || !formData.birthDay) return null;
+
+        const birthDate = new Date(
+            parseInt(formData.birthYear),
+            parseInt(formData.birthMonth) - 1,
+            parseInt(formData.birthDay)
+        );
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
+        return age;
+    }
+
     const renderNameStep = () => (
         <View style={styles.stepContainer}>
             <Text style={styles.waveEmoji}>👋</Text>
             <Text style={styles.title}>Hello!</Text>
-            <TextInput style={styles.input} placeholder="Enter Your Name" value={formData.name} onChangeText={(text) => handleChange('name', text)} placeholderTextColor="#666" />
+            <TextInput
+                style={styles.input}
+                placeholder="Enter Your Name"
+                value={formData.name}
+                onChangeText={(text) => handleChange('name', text)}
+                placeholderTextColor="#666"
+            />
         </View>
     )
 
@@ -137,66 +160,93 @@ export default function CreateProfile() {
                         onPress={() => handleChange('gender', option.id)}
                     >
                         <Text style={styles.genderIcon}>{option.icon}</Text>
-                        <Text style={[styles.genderLabel, formData.gender === option.id && styles.genderLabelSelected]}>{option.label}</Text>
+                        <Text style={[styles.genderLabel, formData.gender === option.id && styles.genderLabelSelected]}>
+                            {option.label}
+                        </Text>
                     </TouchableOpacity>
                 ))}
             </View>
         </View>
     )
 
-    const renderAgeStep = () => (
-        <View style={styles.stepContainer}>
-            <Text style={styles.title2}>How Old Are You?</Text>
-            <Text style={styles.subtitle}>We will make sure you get better and personalized results</Text>
-            <LinearGradient colors={['rgba(97, 86, 226, 0.9)', 'rgba(171, 73, 161, 0.9)']} style={styles.datePickerContainer}>
-                <ScrollView showsVerticalScrollIndicator={false}>
-                    <View style={styles.dateColumn}>
-                        {days.map((day) => (
-                            <TouchableOpacity
-                                key={day}
-                                style={[styles.dateOption, formData.birthDay === day.toString() && styles.dateOptionSelected]}
-                                onPress={() => handleChange('birthDay', day.toString())}
-                            >
-                                <Text style={[styles.dateText, formData.birthDay === day.toString() && styles.dateTextSelected]}>{day}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                </ScrollView>
-                <ScrollView showsVerticalScrollIndicator={false}>
-                    <View style={styles.dateColumn}>
-                        {months.map((month) => (
-                            <TouchableOpacity
-                                key={month}
-                                style={[styles.dateOption, formData.birthMonth === month.toString() && styles.dateOptionSelected]}
-                                onPress={() => handleChange('birthMonth', month.toString())}
-                            >
-                                <Text style={[styles.dateText, formData.birthMonth === month.toString() && styles.dateTextSelected]}>{month}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                </ScrollView>
-                <ScrollView showsVerticalScrollIndicator={false}>
-                    <View style={styles.dateColumn}>
-                        {years.map((year) => (
-                            <TouchableOpacity
-                                key={year}
-                                style={[styles.dateOption, formData.birthYear === year.toString() && styles.dateOptionSelected]}
-                                onPress={() => handleChange('birthYear', year.toString())}
-                            >
-                                <Text style={[styles.dateText, formData.birthYear === year.toString() && styles.dateTextSelected]}>{year}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                </ScrollView>
-            </LinearGradient>
-            <Text style={styles.ageNote}>Not allowed to use under 18</Text>
-        </View>
-    )
+    const renderAgeStep = () => {
+        const age = calculateAge();
+        const isUnder18 = age !== null && age < 18;
+
+        return (
+            <View style={styles.stepContainer}>
+                <Text style={styles.title2}>How Old Are You?</Text>
+                <Text style={styles.subtitle}>We will make sure you get better and personalized results</Text>
+                <LinearGradient
+                    colors={['rgba(97, 86, 226, 0.9)', 'rgba(171, 73, 161, 0.9)']}
+                    style={styles.datePickerContainer}
+                >
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                        <View style={styles.dateColumn}>
+                            {days.map((day) => (
+                                <TouchableOpacity
+                                    key={day}
+                                    style={[styles.dateOption, formData.birthDay === day.toString() && styles.dateOptionSelected]}
+                                    onPress={() => handleChange('birthDay', day.toString())}
+                                >
+                                    <Text
+                                        style={[styles.dateText, formData.birthDay === day.toString() && styles.dateTextSelected]}
+                                    >
+                                        {day}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </ScrollView>
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                        <View style={styles.dateColumn}>
+                            {months.map((month) => (
+                                <TouchableOpacity
+                                    key={month}
+                                    style={[styles.dateOption, formData.birthMonth === month.toString() && styles.dateOptionSelected]}
+                                    onPress={() => handleChange('birthMonth', month.toString())}
+                                >
+                                    <Text
+                                        style={[styles.dateText, formData.birthMonth === month.toString() && styles.dateTextSelected]}
+                                    >
+                                        {month}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </ScrollView>
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                        <View style={styles.dateColumn}>
+                            {years.map((year) => (
+                                <TouchableOpacity
+                                    key={year}
+                                    style={[styles.dateOption, formData.birthYear === year.toString() && styles.dateOptionSelected]}
+                                    onPress={() => handleChange('birthYear', year.toString())}
+                                >
+                                    <Text
+                                        style={[styles.dateText, formData.birthYear === year.toString() && styles.dateTextSelected]}
+                                    >
+                                        {year}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </ScrollView>
+                </LinearGradient>
+                <Text style={styles.ageNote}>Not allowed to use under 18</Text>
+                {isUnder18 && (
+                    <Text style={styles.errorText}>You must be at least 18 years old to proceed.</Text>
+                )}
+            </View>
+        )
+    }
 
     const renderLanguageStep = () => (
         <View style={styles.stepContainer}>
             <Text style={styles.title2}>Select Languages</Text>
-            <Text style={styles.subtitle}>Choose specific languages for communication, translation, localization, or learning purposes.</Text>
+            <Text style={styles.subtitle}>
+                Choose specific languages for communication, translation, localization, or learning purposes.
+            </Text>
             <View style={styles.languageGrid}>
                 {languages.map((language) => (
                     <TouchableOpacity
@@ -204,8 +254,16 @@ export default function CreateProfile() {
                         style={[styles.languageOption, formData.selectedLanguages.includes(language.id) && styles.languageOptionSelected]}
                         onPress={() => handleChange('selectedLanguages', language.id)}
                     >
-                        <Text style={[styles.languageName, formData.selectedLanguages.includes(language.id) && styles.languageNameSelected]}>{language.name}</Text>
-                        <Text style={[styles.languageNative, formData.selectedLanguages.includes(language.id) && styles.languageNativeSelected]}>{language.native}</Text>
+                        <Text
+                            style={[styles.languageName, formData.selectedLanguages.includes(language.id) && styles.languageNameSelected]}
+                        >
+                            {language.name}
+                        </Text>
+                        <Text
+                            style={[styles.languageNative, formData.selectedLanguages.includes(language.id) && styles.languageNativeSelected]}
+                        >
+                            {language.native}
+                        </Text>
                     </TouchableOpacity>
                 ))}
             </View>
@@ -218,9 +276,15 @@ export default function CreateProfile() {
             <Text style={styles.subtitle}>Upload your profile picture</Text>
             <View style={styles.profileImageContainer}>
                 <View style={styles.imageWrapper}>
-                    <Image source={profileImage ? { uri: profileImage } : require('../assets/images/women.png')} style={styles.profileImage} />
+                    <Image
+                        source={profileImage ? { uri: profileImage } : require('../assets/images/women.png')}
+                        style={styles.profileImage}
+                    />
                     <TouchableOpacity onPress={pickImage}>
-                        <LinearGradient colors={['rgba(97, 86, 226, 0.9)', 'rgba(171, 73, 161, 0.9)']} style={styles.editButton}>
+                        <LinearGradient
+                            colors={['rgba(97, 86, 226, 0.9)', 'rgba(171, 73, 161, 0.9)']}
+                            style={styles.editButton}
+                        >
                             <FontAwesome5 name="pencil-alt" size={18} color="#fff" />
                         </LinearGradient>
                     </TouchableOpacity>
@@ -236,8 +300,14 @@ export default function CreateProfile() {
         if (step === 1 && !formData.gender) {
             return true
         }
-        if (step === 2 && (!formData.birthDay || !formData.birthMonth || !formData.birthYear)) {
-            return true
+        if (step === 2) {
+            if (!formData.birthDay || !formData.birthMonth || !formData.birthYear) {
+                return true
+            }
+            const age = calculateAge()
+            if (age === null || age < 18) {
+                return true
+            }
         }
         if (step === 3 && formData.selectedLanguages.length === 0) {
             return true
@@ -267,7 +337,7 @@ export default function CreateProfile() {
 
     return (
         <View style={styles.container}>
-            <Loading isVisible={isSubmitting}/>
+            <Loading isVisible={isSubmitting} />
             <TouchableOpacity style={styles.backButton} onPress={() => setStep(Math.max(0, step - 1))}>
                 <Text style={styles.backButtonText}>
                     <AntDesign name="arrowleft" size={20} color="black" />
@@ -326,11 +396,6 @@ const styles = StyleSheet.create({
         paddingTop: 50,
         alignItems: 'center',
     },
-    welcomeImage: {
-        width: '80%',
-        objectFit: 'contain',
-        marginBottom: 30,
-    },
     waveEmoji: {
         fontSize: 48,
     },
@@ -342,11 +407,6 @@ const styles = StyleSheet.create({
     },
     title2: {
         fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    title3: {
-        fontSize: 20,
         fontWeight: 'bold',
         textAlign: 'center',
     },
@@ -365,20 +425,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         fontSize: 16,
         marginBottom: 20,
-    },
-    nextButton: {
-        width: '100%',
-        height: 50,
-        backgroundColor: '#8A2BE2',
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 20,
-    },
-    nextButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
     },
     genderContainer: {
         width: '100%',
@@ -438,6 +484,12 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#666',
         marginTop: 10,
+    },
+    errorText: {
+        fontSize: 14,
+        color: 'red',
+        marginTop: 10,
+        textAlign: 'center',
     },
     languageGrid: {
         flexDirection: 'row',

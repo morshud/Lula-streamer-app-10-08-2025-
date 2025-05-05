@@ -17,7 +17,7 @@ export default function Followers() {
     useEffect(() => {
         const getFollowers = async () => {
             try {
-                setIsLoading(false)
+                setIsLoading(true) // Set loading to true at the start
                 const res = await FollowService.getFollowers(user.id)
                 if (!res.error) {
                     setFollowing(res.followers)
@@ -30,6 +30,9 @@ export default function Followers() {
         }
         getFollowers()
     }, [])
+
+    // Placeholder image URI (you can replace this with your own image URL or local asset)
+    const placeholderImage = 'https://via.placeholder.com/150'; // Example placeholder URL
 
     return (
         <>
@@ -46,12 +49,17 @@ export default function Followers() {
 
                     {/* Search Bar */}
                     <View className="px-4">
-                        <TextInput className="w-full p-3 bg-gray-200 rounded-lg" placeholder="Search Followers..." value={search} onChangeText={setSearch} />
+                        <TextInput
+                            className="w-full p-3 bg-gray-200 rounded-lg"
+                            placeholder="Search Followers..."
+                            value={search}
+                            onChangeText={setSearch}
+                        />
                     </View>
 
                     {/* Followers List */}
                     <FlatList
-                        data={following.filter((f) => f.name.toLowerCase().includes(search.toLowerCase()))}
+                        data={following.filter((f) => f?.name?.toLowerCase().includes(search?.toLowerCase()))}
                         keyExtractor={(item) => item.id}
                         ListEmptyComponent={() => (
                             <View className="items-center justify-center mt-20">
@@ -60,7 +68,11 @@ export default function Followers() {
                         )}
                         renderItem={({ item }) => (
                             <View className="flex-row items-center p-4 border-b border-gray-200">
-                                <Image source={{ uri: item.profileUri }} className="w-12 h-12 rounded-full" />
+                                <Image
+                                    source={require('../assets/images/avatar.png')} // Use placeholder if profileUri is missing
+                                    className="w-12 h-12 rounded-full"
+                                    defaultSource={{ uri: placeholderImage }} // Fallback for invalid URIs
+                                />
                                 <View className="ml-3">
                                     <Text className="text-base font-semibold">{item.name}</Text>
                                 </View>
