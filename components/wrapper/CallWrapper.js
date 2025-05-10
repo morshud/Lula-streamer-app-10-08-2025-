@@ -1,50 +1,87 @@
-import { useEffect, useState } from 'react';
-import { StyleSheet, Modal, Text, TouchableOpacity, View, Dimensions } from 'react-native';
-import { useSelector } from 'react-redux';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import AuthService from '../../services/AuthService';
-import { navigate } from '../../navigations/RootNavigation';
-import { callType } from '../../constants/data';
+import { useEffect, useRef, useState } from 'react'
+import { StyleSheet, Modal, Text, TouchableOpacity, View, Dimensions } from 'react-native'
+import { useSelector } from 'react-redux'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Ionicons } from '@expo/vector-icons'
+import AuthService from '../../services/AuthService'
+import { navigate } from '../../navigations/RootNavigation'
+import { callType } from '../../constants/data'
+import { Audio } from 'expo-av'
 
-const { height } = Dimensions.get('window');
+const { height } = Dimensions.get('window')
 
 const CallWrapper = ({ children }) => {
-    const { user } = useSelector((state) => state.auth);
-    const [currentCall, setCurrentCall] = useState(null);
-    const [modalVisible, setModalVisible] = useState(false);
+    const { user } = useSelector((state) => state.auth)
+    const [currentCall, setCurrentCall] = useState(null)
+    const [modalVisible, setModalVisible] = useState(false)
+    const ringtoneRef = useRef(null)
+
+    const playRingtone = async () => {
+        try {
+            const { sound } = await Audio.Sound.createAsync(
+                require('../../assets/audio/iphone_15.mp3'), // Make sure this path is correct
+                { isLooping: true }
+            )
+            ringtoneRef.current = sound
+            await sound.playAsync()
+        } catch (error) {
+            console.error('Error playing ringtone:', error)
+        }
+    }
+
+    const stopRingtone = async () => {
+        if (ringtoneRef.current) {
+            await ringtoneRef.current.stopAsync()
+            await ringtoneRef.current.unloadAsync()
+            ringtoneRef.current = null
+        }
+    }
 
     useEffect(() => {
-        if (!user) return;
+        if (!user) return
 
         const unsubscribe = AuthService.listenUserId(user.id, (data) => {
             // if (!data?.currentCall) return;
 
             setCurrentCall((prevCall) => {
                 if (prevCall?.callId !== data?.currentCall?.callId) {
-                    setModalVisible(data.currentCall.type === callType.INCOMING);
-                    return data.currentCall;
+                    const isIncoming = data?.currentCall?.type === callType.INCOMING
+                    setModalVisible(isIncoming)
+
+                    if (isIncoming) {
+                        playRingtone()
+                    } else {
+                        stopRingtone()
+                    }
+
+                    return data.currentCall
                 }
                 if (prevCall?.callId && !data.currentCall) {
                     setModalVisible(false)
+                    stopRingtone()
                     return null
                 }
-                return prevCall;
-            });
-        });
+                return prevCall
+            })
+        })
 
-        return () => unsubscribe();
-    }, [user]);
+        return () => {
+            unsubscribe()
+            stopRingtone()
+        }
+    }, [user])
 
     const handleAccept = () => {
-        setModalVisible(false);
-        navigate('Call', { id: currentCall });
-    };
+        setModalVisible(false)
+        stopRingtone()
+        navigate('Call', { id: currentCall })
+    }
 
     const handleDecline = () => {
-        setModalVisible(false);
+        setModalVisible(false)
+        stopRingtone()
         navigate('Call', { id: currentCall, end: true })
-    };
+    }
 
     return (
         <>
@@ -52,14 +89,11 @@ const CallWrapper = ({ children }) => {
 
             <Modal transparent animationType="fade" visible={modalVisible}>
                 <View style={styles.modalContainer}>
-                    <LinearGradient
-                        colors={['rgba(97, 86, 226, 1)', 'rgba(171, 73, 161, 1)', 'rgba(171, 73, 161, 1)', 'rgba(171, 73, 161, 1)']}
-                        style={styles.gradientContainer}
-                    >
+                    <LinearGradient colors={['rgba(97, 86, 226, 1)', 'rgba(171, 73, 161, 1)', 'rgba(171, 73, 161, 1)', 'rgba(171, 73, 161, 1)']} style={styles.gradientContainer}>
                         <View style={styles.contentContainer}>
                             <Text style={styles.mobileText}>Lula</Text>
                             <Text style={styles.callerName}>Incoming Call</Text>
-                            
+
                             <View style={styles.actionsContainer}>
                                 {/* <View style={styles.actionRow}>
                                     <TouchableOpacity style={styles.secondaryAction}>
@@ -78,17 +112,11 @@ const CallWrapper = ({ children }) => {
                                 </View> */}
 
                                 <View style={styles.mainActions}>
-                                    <TouchableOpacity 
-                                        style={[styles.mainActionButton, styles.declineButton]}
-                                        onPress={handleDecline}
-                                    >
+                                    <TouchableOpacity style={[styles.mainActionButton, styles.declineButton]} onPress={handleDecline}>
                                         <Ionicons name="call" size={32} color="white" />
                                     </TouchableOpacity>
 
-                                    <TouchableOpacity 
-                                        style={[styles.mainActionButton, styles.acceptButton]}
-                                        onPress={handleAccept}
-                                    >
+                                    <TouchableOpacity style={[styles.mainActionButton, styles.acceptButton]} onPress={handleAccept}>
                                         <Ionicons name="call" size={32} color="white" />
                                     </TouchableOpacity>
                                 </View>
@@ -98,8 +126,8 @@ const CallWrapper = ({ children }) => {
                 </View>
             </Modal>
         </>
-    );
-};
+    )
+}
 
 const styles = StyleSheet.create({
     modalContainer: {
@@ -173,6 +201,6 @@ const styles = StyleSheet.create({
     acceptButton: {
         backgroundColor: '#34C759',
     },
-});
+})
 
-export default CallWrapper;
+export default CallWrapper
