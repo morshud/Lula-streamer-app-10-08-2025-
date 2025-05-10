@@ -38,7 +38,7 @@ class HomeService extends BaseService {
             })
             // Convert to pie chart format
             const pieChartData = Object.entries(weeks).map(([week, totalEarnings], index) => ({
-                name: `Week ${4 - index}`, // Labels as Week 4, Week 3, etc.
+                name: `Week ${4 - index} Earnings`, // Labels as Week 4, Week 3, etc.
                 population: parseFloat(totalEarnings?.toFixed(2)),
                 color: ['#F1B5CB', 'rgba(171, 73, 161, 0.8)', 'rgba(97, 86, 226, 1)', '#FFD700'][index], // Assign colors
                 legendFontColor: '#7F7F7F',
