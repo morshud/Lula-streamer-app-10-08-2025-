@@ -311,12 +311,12 @@ const StreamerProfile = () => {
                                 >
                                     Gender: {data?.gender}
                                 </Text>
-                                <Text
+                                {/* <Text
                                     style={[styles.location, { color: theme === 'dark' ? '#ccc' : 'green' }]}
                                     allowFontScaling={true}
                                 >
                                     Phone: {data?.phoneNumber}
-                                </Text>
+                                </Text> */}
                             </View>
                             <Text
                                 style={[styles.location, { color: theme === 'dark' ? '#ccc' : 'green' }]}
@@ -324,12 +324,12 @@ const StreamerProfile = () => {
                             >
                                 Languages: {data?.selectedLanguages}
                             </Text>
-                            <Text
+                            {/* <Text
                                 style={[styles.location, { color: theme === 'dark' ? '#ccc' : 'green' }]}
                                 allowFontScaling={true}
                             >
                                 Date Of Birth: {data?.birthDay}-{data?.birthMonth}-{data?.birthYear}
-                            </Text>
+                            </Text> */}
                         </View>
                     </LinearGradient>
 
