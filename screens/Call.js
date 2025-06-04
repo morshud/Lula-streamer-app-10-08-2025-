@@ -1,4 +1,4 @@
-import { ActivityIndicator, Modal, Text, View } from 'react-native'
+import { ActivityIndicator, Modal, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { StreamVideo, useStreamVideoClient, CallingState, CallContent, StreamCall, useCallStateHooks } from '@stream-io/video-react-native-sdk'
 import { useNavigation, useRoute } from '@react-navigation/native'
@@ -9,6 +9,7 @@ import { handleError } from '../utils/function'
 import uuid from 'react-native-uuid'
 import { useSelector } from 'react-redux'
 import { callType } from '../constants/data'
+import { LinearGradient } from 'expo-linear-gradient'
 
 const CallRoom = ({ call, endCall }) => {
     const navigation = useNavigation()
@@ -42,6 +43,14 @@ const CallRoom = ({ call, endCall }) => {
                             <View style={{ padding: 20, backgroundColor: 'white', borderRadius: 10 }}>
                                 <ActivityIndicator size="large" />
                                 <Text style={{ marginTop: 10, textAlign: 'center' }}>Waiting for other participant to join...</Text>
+                                <TouchableOpacity onPress={() => endCall()}>
+                                    <LinearGradient
+                                        colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)' ]}
+                                        style={styles.sendButton}
+                                    >
+                                        <Text className="text-white">Close</Text>
+                                    </LinearGradient>  
+                                </TouchableOpacity>
                             </View>
                         </View>
                     </Modal>
@@ -175,3 +184,14 @@ const CallScreen = () => {
 }
 
 export default CallScreen
+
+const styles = StyleSheet.create({
+    sendButton: {
+        padding: 10,
+        marginTop: 10,
+        width: '100%',
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+})
