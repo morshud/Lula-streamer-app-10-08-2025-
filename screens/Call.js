@@ -1,4 +1,4 @@
-import { ActivityIndicator, Modal, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { StreamVideo, useStreamVideoClient, CallingState, CallContent, StreamCall, useCallStateHooks } from '@stream-io/video-react-native-sdk'
 import { useNavigation, useRoute } from '@react-navigation/native'

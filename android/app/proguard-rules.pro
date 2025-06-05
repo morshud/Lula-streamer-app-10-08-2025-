@@ -17,4 +17,10 @@
 
 -keep class org.webrtc.** { *; }
 
+
+-keep class org.webrtc.** { *; }
+
+
+-keep class org.webrtc.** { *; }
+
 # @generated end expo-build-properties

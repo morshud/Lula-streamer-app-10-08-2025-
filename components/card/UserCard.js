@@ -143,9 +143,9 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     gradientButton: {
-        width: 100,
-        paddingVertical: 8,
-        borderRadius: 8,
+        width: 80,
+        paddingVertical: 5,
+        borderRadius: 5,
         alignItems: 'center',
     },
     buttonText: {
