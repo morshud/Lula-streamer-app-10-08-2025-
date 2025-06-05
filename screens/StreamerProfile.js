@@ -23,6 +23,7 @@ import AuthService from '../services/AuthService';
 import PostService from '../services/PostService';
 import { handleError } from '../utils/function';
 import Loading from '../components/shared/Loading';
+import coinImage from '../assets/images/coin.png'
 
 // Memoized Posts Component
 const Posts = React.memo(({ posts, setPosts }) => {
@@ -158,23 +159,23 @@ const StatItem = ({ icon, value, label, onPress }) => {
             accessibilityLabel={`${label}: ${value}`}
             accessibilityRole="button"
         >
-            <LinearGradient colors={['#CE54C1', '#6156E2']} style={styles.statCardMain}>
+            <View style={styles.statCardMain} >
                 <Animated.View style={[styles.statCard, animatedStyle]}>
                     {icon}
                     <Text
-                        style={[styles.statValue, { color: theme === 'dark' ? '#fff' : '#fff' }]}
+                        style={[styles.statValue, { color: '#000' }]}
                         allowFontScaling={true}
                     >
                         {value}
                     </Text>
                     <Text
-                        style={[styles.statLabel, { color: theme === 'dark' ? '#fff' : '#fff' }]}
+                        style={[styles.statLabel, { color: '#000' }]}
                         allowFontScaling={true}
                     >
                         {label}
                     </Text>
                 </Animated.View>
-            </LinearGradient>
+            </View>
         </TouchableOpacity>
     );
 };
@@ -262,24 +263,21 @@ const StreamerProfile = () => {
                 <Loading isVisible={true} />
             ) : (
                 <ScrollView
-                    style={[styles.container, { backgroundColor: theme === 'dark' ? '#121212' : '#fff' }]}
+                    style={[styles.container, { backgroundColor: '#fff' }]}
                     contentContainerStyle={{ paddingBottom: 20 }}
                 >
-                    <View style={styles.header}>
-                        <View />
+                    <LinearGradient
+                        colors={['#fff', '#fff']}
+                        style={styles.profileHeader}
+                    >
                         <TouchableOpacity
                             onPress={() => navigation.navigate('Menu')}
                             accessibilityLabel="Open menu"
                             accessibilityRole="button"
+                            style={styles.header}
                         >
-                            <Entypo name="dots-three-vertical" size={20} color={theme === 'dark' ? '#fff' : '#000'} />
+                            <Entypo name="dots-three-vertical" size={20} color={'#000'} />
                         </TouchableOpacity>
-                    </View>
-
-                    <LinearGradient
-                        colors={theme === 'dark' ? ['#2A2A2A', '#1F1F1F'] : ['#F3E8FF', '#E9D5FF']}
-                        style={styles.profileHeader}
-                    >
                         <View style={styles.profileImageContainer}>
                             <Image
                                 source={
@@ -299,33 +297,33 @@ const StreamerProfile = () => {
                         </View>
                         <View style={styles.textContainer}>
                             <Text
-                                style={[styles.username, { color: theme === 'dark' ? '#fff' : '#333' }]}
+                                style={[styles.username, { color: '#333' }]}
                                 allowFontScaling={true}
                             >
                                 {data?.name}
                             </Text>
                             <View style={styles.profileDetails}>
                                 <Text
-                                    style={[styles.location, { color: theme === 'dark' ? '#ccc' : 'green' }]}
+                                    style={[styles.location, { color: 'gray' }]}
                                     allowFontScaling={true}
                                 >
                                     Gender: {data?.gender}
                                 </Text>
                                 {/* <Text
-                                    style={[styles.location, { color: theme === 'dark' ? '#ccc' : 'green' }]}
+                                    style={[styles.location, { color: 'gray' }]}
                                     allowFontScaling={true}
                                 >
                                     Phone: {data?.phoneNumber}
                                 </Text> */}
                             </View>
                             <Text
-                                style={[styles.location, { color: theme === 'dark' ? '#ccc' : 'green' }]}
+                                style={[styles.location, { color: 'gray' }]}
                                 allowFontScaling={true}
                             >
                                 Languages: {data?.selectedLanguages}
                             </Text>
                             {/* <Text
-                                style={[styles.location, { color: theme === 'dark' ? '#ccc' : 'green' }]}
+                                style={[styles.location, { color: theme === 'dark' ? '#ccc' : 'gray' }]}
                                 allowFontScaling={true}
                             >
                                 Date Of Birth: {data?.birthDay}-{data?.birthMonth}-{data?.birthYear}
@@ -335,22 +333,45 @@ const StreamerProfile = () => {
 
                     <View style={styles.statsContainer}>
                         <StatItem
-                            icon={<MaterialCommunityIcons name="post-outline" size={22} color={theme === 'dark' ? '#fff' : '#fff'} />}
+                            icon={<MaterialCommunityIcons name="post-outline" size={22} color={'#000'} />}
                             value={posts.length || 0}
                             label="Posts"
                         />
                         <StatItem
-                            icon={<Feather name="users" size={22} color={theme === 'dark' ? '#fff' : '#fff'} />}
+                            icon={<Feather name="users" size={22} color={'#000'} />}
                             value={data?.followers?.length || 0}
                             label="Followers"
                             onPress={() => navigation.navigate('Follower')}
                         />
                         <StatItem
-                            icon={<SimpleLineIcons name="user-following" size={22} color={theme === 'dark' ? '#fff' : '#fff'} />}
+                            icon={<SimpleLineIcons name="user-following" size={22} color={'#000'} />}
                             value={data?.following?.length || 0}
                             label="Followings"
                             onPress={() => navigation.navigate('Following')}
                         />
+                        <TouchableOpacity
+                            onPressIn={() => (scale.value = withSpring(0.95))}
+                            onPressOut={() => (scale.value = withSpring(1))}
+                            accessibilityRole="button"
+                        >
+                            <View style={styles.statCardMain} >
+                                <Animated.View style={[styles.statCard]}>
+                                    <Image source={coinImage} style={[{width: 33, height: 25, objectFit: 'contain'}]} />
+                                    <Text
+                                        style={[styles.statValue, { color: '#000' }]}
+                                        allowFontScaling={true}
+                                    >
+                                        4343
+                                    </Text>
+                                    <Text
+                                        style={[styles.statLabel, { color: '#000' }]}
+                                        allowFontScaling={true}
+                                    >
+                                        Coins
+                                    </Text>
+                                </Animated.View>
+                            </View>
+                        </TouchableOpacity>
                     </View>
 
                     <View style={styles.buttonDiv}>
@@ -371,18 +392,14 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 15,
+        position: 'absolute',
+        top: 0,
+        right: 10,
     },
     profileHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 12,
-        padding: 15,
-        borderRadius: 10,
-        elevation: 3,
         marginBottom: 20,
     },
     profileImageContainer: {
@@ -443,28 +460,30 @@ const styles = StyleSheet.create({
     statsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        // marginHorizontal: 10,
+        alignItems: 'center',
+        width: '100%',
         marginBottom: 20,
     },
     statCardMain: {
+        flex: 1,
         alignItems: 'center',
-        borderRadius: 6,
-        width: '95%',
+        justifyContent: 'center',
     },
     statCard: {
         alignItems: 'center',
-        paddingVertical: 15,
-        width: 110,
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        backgroundColor: 'red',
     },
     statValue: {
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: '600',
-        color: '#fff',
+        color: '#000',
         marginTop: 5,
     },
     statLabel: {
-        fontSize: 12,
-        color: '#fff',
+        fontSize: 14,
+        color: '#000',
         marginTop: 2,
     },
     buttonDiv: {
