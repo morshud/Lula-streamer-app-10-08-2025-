@@ -361,7 +361,7 @@ const StreamerProfile = () => {
                                         style={[styles.statValue, { color: '#000' }]}
                                         allowFontScaling={true}
                                     >
-                                        4343
+                                        {(user?.coins || 0).toFixed(2)}
                                     </Text>
                                     <Text
                                         style={[styles.statLabel, { color: '#000' }]}
@@ -473,7 +473,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 10,
         paddingHorizontal: 10,
-        backgroundColor: 'red',
     },
     statValue: {
         fontSize: 16,
