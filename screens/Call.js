@@ -158,6 +158,15 @@ const CallComponent = () => {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size={'large'} />
+                <Text style={{ marginTop: 10, textAlign: 'center' }}>Waiting for call getting connected...</Text>
+                <TouchableOpacity onPress={() => endCall()}>
+                    <LinearGradient
+                        colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)' ]}
+                        style={styles.sendButton2}
+                    >
+                        <Text className="text-white">Close</Text>
+                    </LinearGradient>  
+                </TouchableOpacity>
             </View>
         )
     }
@@ -190,6 +199,14 @@ const styles = StyleSheet.create({
         padding: 10,
         marginTop: 10,
         width: '100%',
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    sendButton2: {
+        padding: 10,
+        marginTop: 10,
+        width: 200,
         borderRadius: 25,
         justifyContent: 'center',
         alignItems: 'center',
