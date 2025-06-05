@@ -8,6 +8,16 @@ import AuthService from '../services/AuthService'
 import UserCard from '../components/card/UserCard'
 import { useSelector } from 'react-redux'
 
+// Shuffle function to randomize array
+const shuffleArray = (array) => {
+    const shuffled = [...array]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    return shuffled
+}
+
 const Users = () => {
     const navigation = useNavigation()
     const [users, setUsers] = useState([])
@@ -20,7 +30,9 @@ const Users = () => {
         setLoading(true)
         try {
             const result = await UserService.getUsers(10, reset ? null : lastVisible)
-            setUsers((prevUsers) => (reset ? result.users : [...prevUsers, ...result.users]))
+            const newUsers = result.users
+            const shuffledUsers = shuffleArray(newUsers)
+            setUsers((prevUsers) => (reset ? shuffledUsers : [...prevUsers, ...shuffledUsers]))
             setLastVisible(result.lastVisible)
         } catch (error) {
             console.error('Error fetching users:', error)
@@ -40,10 +52,6 @@ const Users = () => {
     useEffect(() => {
         fetchUsers()
     }, [])
-
-
-
-
 
     const { user } = useSelector((state) => state.auth)
     const [data, setData] = useState(null)
@@ -65,9 +73,6 @@ const Users = () => {
         }
         getData()
     }, [])
-
-
-
 
     return (
         <LinearGradient colors={['rgba(171, 73, 161, 0.9)', 'rgba(97, 86, 226, 0.9)']} style={styles.gradient}>
@@ -91,7 +96,7 @@ const Users = () => {
                     renderItem={({ item }) => <UserCard item={item} />}
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
-                    contentContainerStyle={{paddingBottom:80}}
+                    contentContainerStyle={{ paddingBottom: 80 }}
                 />
             </View>
         </LinearGradient>
@@ -130,61 +135,6 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 15,
         height: '100%',
         borderTopRightRadius: 15,
-    },
-    tabs: {
-        backgroundColor: '#fff',
-    },
-    tabBar: {
-        flexDirection: 'row',
-        marginBottom: 20,
-    },
-    tabItem: {
-        flex: 1,
-        alignItems: 'center',
-        paddingVertical: 10,
-    },
-    activeTab: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#6200ee',
-    },
-    tabText: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: '#aaa',
-    },
-    activeTabText: {
-        color: '#6200ee',
-    },
-    chatItem: {
-        flexDirection: 'row',
-        padding: 10,
-        alignItems: 'center',
-    },
-    image: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-    },
-    textContainer: {
-        marginLeft: 10,
-        flex: 1,
-    },
-    name: {
-        fontWeight: 500,
-    },
-    message: {
-        color: 'gray',
-        fontWeight: 300,
-        fontSize: 12,
-    },
-    time: {
-        color: 'gray',
-        fontSize: 12,
-    },
-    centeredText: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
     },
 })
 
