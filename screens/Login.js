@@ -87,6 +87,14 @@ const Login = () => {
             const res = await AuthService.verifyOtp(otp.join(''), confirmation)
 
             if (!res.error) {
+                // OTP verified, user is logged in
+                const userId = res.user.id;
+                // Ensure statusShow is set to true
+                if (typeof AuthService.updateStatusShow === 'function') {
+                    await AuthService.updateStatusShow(userId, true);
+                } else {
+                    console.error('updateStatusShow is not a function');
+                }
                 dispatch(setUser(res.user))
                 showToast('Phone number verified successfully!', 'success')
                 navigation.reset({ index: 0, routes: [{ name: res.user.profileCompleted ? 'Main' : 'CreateProfile' }] })

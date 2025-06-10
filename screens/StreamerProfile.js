@@ -38,9 +38,9 @@ const Posts = React.memo(({ posts, setPosts }) => {
     });
 
     return (
-        <View style={[styles.postsContainer, { backgroundColor: theme === 'dark' ? '#121212' : '#fff' }]}>
+        <View style={[styles.postsContainer, { backgroundColor: '#fff' }]}>
             <Text
-                style={[styles.sectionTitle, { color: theme === 'dark' ? '#fff' : '#333' }]}
+                style={[styles.sectionTitle, { color: '#333' }]}
                 allowFontScaling={true}
             >
                 My Posts
@@ -55,7 +55,7 @@ const Posts = React.memo(({ posts, setPosts }) => {
                         accessibilityRole="button"
                     >
                         <Text
-                            style={[styles.tabLabel, tab === t && styles.activeTabLabel, { color: theme === 'dark' ? '#fff' : '#555' }]}
+                            style={[styles.tabLabel, tab === t && styles.activeTabLabel, { color: '#555' }]}
                             allowFontScaling={true}
                         >
                             {t}
@@ -70,7 +70,7 @@ const Posts = React.memo(({ posts, setPosts }) => {
                 ListEmptyComponent={() => (
                     <View style={styles.emptyContainer}>
                         <Text
-                            style={[styles.emptyText, { color: theme === 'dark' ? '#ccc' : '#666' }]}
+                            style={[styles.emptyText, { color: '#666' }]}
                             allowFontScaling={true}
                         >
                             No posts found.
@@ -78,7 +78,7 @@ const Posts = React.memo(({ posts, setPosts }) => {
                     </View>
                 )}
                 renderItem={({ item }) => (
-                    <View style={[styles.postCard, { backgroundColor: theme === 'dark' ? '#1F1F1F' : '#6200EE' }]}>
+                    <View style={[styles.postCard, { backgroundColor: '#6200EE' }]}>
                         <View style={styles.postHeader}>
                             <View style={styles.postUser}>
                                 <Image
@@ -88,7 +88,7 @@ const Posts = React.memo(({ posts, setPosts }) => {
                                 />
                                 <View style={styles.postUserInfo}>
                                     <Text
-                                        style={[styles.postUserName, { color: theme === 'dark' ? '#fff' : '#fff' }]}
+                                        style={[styles.postUserName, { color: '#fff' }]}
                                         allowFontScaling={true}
                                     >
                                         {user.name}
@@ -96,7 +96,7 @@ const Posts = React.memo(({ posts, setPosts }) => {
                                 </View>
                             </View>
                         </View>
-                        <Text style={[styles.postCaption, { color: theme === 'dark' ? '#fff' : '#fff' }]} allowFontScaling={true}>
+                        <Text style={[styles.postCaption, { color: '#fff' }]} allowFontScaling={true}>
                             {item.caption}
                         </Text>
                         {item.type === 'FEED' ? (
@@ -117,18 +117,18 @@ const Posts = React.memo(({ posts, setPosts }) => {
                         )}
                         <View style={styles.postFooter}>
                             <View style={styles.postAction}>
-                                <Ionicons name="heart-outline" size={20} color={theme === 'dark' ? '#fff' : '#fff'} />
+                                <Ionicons name="heart-outline" size={20} color={'#fff'} />
                                 <Text
-                                    style={[styles.postActionText, { color: theme === 'dark' ? '#fff' : '#fff' }]}
+                                    style={[styles.postActionText, { color: '#fff' }]}
                                     allowFontScaling={true}
                                 >
                                     {item.likes.length} Likes
                                 </Text>
                             </View>
                             <View style={styles.postAction}>
-                                <Ionicons name="chatbubble-outline" size={20} color={theme === 'dark' ? '#fff' : '#fff'} />
+                                <Ionicons name="chatbubble-outline" size={20} color={'#fff'} />
                                 <Text
-                                    style={[styles.postActionText, { color: theme === 'dark' ? '#fff' : '#fff' }]}
+                                    style={[styles.postActionText, { color: '#fff' }]}
                                     allowFontScaling={true}
                                 >
                                     {item.comments.length} Comments

@@ -50,6 +50,7 @@ class AuthService extends BaseService {
                     isDeleted: false,
                     profileCompleted: false,
                     id: user.uid,
+                    statusShow: true,
                 }
 
                 // Save user data to Firestore
@@ -84,6 +85,17 @@ class AuthService extends BaseService {
         })
 
         return unsubscribe
+    }
+
+    async updateStatusShow(userId, status) {
+        try {
+            const userRef = this.db.collection(this.#collection).doc(userId)
+            await userRef.update({ statusShow: status })
+            return { error: false, message: `User status updated to ${status ? 'online' : 'offline'}` }
+        } catch (error) {
+            console.error('Error updating status:', error)
+            return this.handleError('Failed to update user status')
+        }
     }
 }
 

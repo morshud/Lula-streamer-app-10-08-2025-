@@ -7,6 +7,7 @@ import RBSheet from 'react-native-raw-bottom-sheet'
 import { clearAuth } from '../store/slices/auth'
 import { handleError } from '../utils/function'
 import auth from "@react-native-firebase/auth"
+import AuthService from '../services/AuthService'
 const MenuScreen = () => {
     const navigation = useNavigation()
     const dispatch = useDispatch()
@@ -14,6 +15,16 @@ const MenuScreen = () => {
 
     const handleLogout = async () => {
         try {
+            const user = auth().currentUser;
+            if (user) {
+                const userId = user.uid;
+                // Set statusShow to false before signing out
+                if (typeof AuthService.updateStatusShow === 'function') {
+                    await AuthService.updateStatusShow(userId, false);
+                } else {
+                    console.error('updateStatusShow is not a function');
+                }
+            }
             auth().signOut()
             navigation.reset({ index: 0, routes: [{ name: 'Login' }] })
             dispatch(clearAuth())
