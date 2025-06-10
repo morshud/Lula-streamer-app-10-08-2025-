@@ -44,12 +44,9 @@ const CallRoom = ({ call, endCall }) => {
                                 <ActivityIndicator size="large" />
                                 <Text style={{ marginTop: 10, textAlign: 'center' }}>Waiting for other participant to join...</Text>
                                 <TouchableOpacity onPress={() => endCall()}>
-                                    <LinearGradient
-                                        colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)' ]}
-                                        style={styles.sendButton}
-                                    >
+                                    <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={styles.sendButton}>
                                         <Text className="text-white">Close</Text>
-                                    </LinearGradient>  
+                                    </LinearGradient>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -87,8 +84,8 @@ const CallComponent = () => {
             }
 
             await Promise.all([
-                AuthService.update(userId, { currentCall: { callId, type: callType.INCOMING } }),
-                AuthService.update(user?.id, { currentCall: { callId, type: callType.OUTGOING } }),
+                AuthService.update(userId, { currentCall: { callId, type: callType.INCOMING }, inCall: true }),
+                AuthService.update(user?.id, { currentCall: { callId, type: callType.OUTGOING }, inCall: true }),
             ])
 
             console.log('Call Initiated')
@@ -102,7 +99,7 @@ const CallComponent = () => {
     const endCall = async () => {
         console.log('end call function')
 
-        await Promise.all([AuthService.update(userId, { currentCall: '' }), AuthService.update(user.id, { currentCall: '' })])
+        await Promise.all([AuthService.update(userId, { currentCall: '', inCall: false }), AuthService.update(user.id, { currentCall: '', inCall: false })])
         call?.endCall()
         if (navigation.canGoBack()) {
             navigation.goBack()
@@ -160,12 +157,9 @@ const CallComponent = () => {
                 <ActivityIndicator size={'large'} />
                 <Text style={{ marginTop: 10, textAlign: 'center' }}>Waiting for call getting connected...</Text>
                 <TouchableOpacity onPress={() => endCall()}>
-                    <LinearGradient
-                        colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)' ]}
-                        style={styles.sendButton2}
-                    >
+                    <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={styles.sendButton2}>
                         <Text className="text-white">Close</Text>
-                    </LinearGradient>  
+                    </LinearGradient>
                 </TouchableOpacity>
             </View>
         )
