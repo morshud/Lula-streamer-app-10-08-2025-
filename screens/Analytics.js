@@ -5,7 +5,7 @@ import { PieChart } from 'react-native-chart-kit'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import HomeService from '../services/HomeService'
-import AuthService from '../services/AuthService' // Import AuthService to fetch user data
+import AuthService from '../services/AuthService'
 import { useSelector } from 'react-redux'
 import { handleError } from '../utils/function'
 
