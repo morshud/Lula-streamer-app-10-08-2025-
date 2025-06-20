@@ -57,14 +57,16 @@ const UserCard = ({ item }) => {
 
     return (
         <View style={styles.cardContainer}>
-            <Image 
-                source={item.profileUri ? { uri: item.profileUri } : require('../../assets/images/avatar.png')} 
-                style={styles.profileImage} 
-            />
+            <View className="relative">
+                <Image 
+                    source={item.profileUri ? { uri: item.profileUri } : require('../../assets/images/avatar.png')} 
+                    style={styles.profileImage} 
+                />
+                <View style={[styles.statusIndicator, { backgroundColor: item.statusShow ? '#4CAF50' : '#B0BEC5' }]} />
+            </View>
             <View style={styles.textContainer}>
                 <View style={styles.headerRow}>
                     <Text style={styles.userName}>{item.name || 'Anonymous User'}</Text>
-                    <View style={[styles.statusIndicator, { backgroundColor: item.status ? '#4CAF50' : '#B0BEC5' }]} />
                 </View>
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity onPress={handleFollow} style={styles.button}>
@@ -103,13 +105,10 @@ const styles = StyleSheet.create({
         marginVertical: 8,
         backgroundColor: '#FFFFFF',
         borderRadius: 12,
-        padding: 12,
+        padding: 8,
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        borderWidth: 1,
+        borderColor: '#ddd',
     },
     profileImage: {
         width: 70,
@@ -133,18 +132,21 @@ const styles = StyleSheet.create({
         color: '#333',
     },
     statusIndicator: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-        marginLeft: 8,
+        width: 14,
+        height: 14,
+        borderRadius: 35,
+        zIndex: 10,
+        position: 'absolute',
+        right: 0,
+        bottom: 0,
     },
     buttonContainer: {
         flexDirection: 'row',
         gap: 8,
     },
     gradientButton: {
-        width: 80,
-        paddingVertical: 5,
+        width: 75,
+        paddingVertical: 3,
         borderRadius: 5,
         alignItems: 'center',
     },
