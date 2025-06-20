@@ -68,17 +68,43 @@ class HomeService extends BaseService {
 
             const totalEarnings = transactionSnapshot.docs.reduce((sum, doc) => sum + (doc.data().coins || 0), 0);
 
-
             const body = {
                 followers: data?.followers?.length || 0,
                 following: data?.following?.length || 0,
                 chats: snapshot.size,
-                totalEarnings:parseFloat(totalEarnings).toFixed(2),
+                totalEarnings: parseFloat(totalEarnings).toFixed(2),
             }
 
             return { error: false, data: body }
         } catch (error) {
             this.handleError(error.message)
+        }
+    }
+
+    /**
+     * Fetches total withdrawn amount for completed withdrawals
+     * @param {string} userId - The ID of the user
+     * @returns {Promise<number>} - Total withdrawn amount
+     */
+    async getTotalWithdrawnAmount(userId) {
+        try {
+            const snapshot = await this.db.collection('withdrawals').where('userId', '==', userId).where('status', '==', 'completed').get()
+            const totalWithdrawn = snapshot.docs.reduce((sum, doc) => sum + (doc.data().amount || 0), 0)
+            return parseFloat(totalWithdrawn.toFixed(2))
+        } catch (error) {
+            console.error('Error fetching withdrawn amount:', error)
+            return 0
+        }
+    }
+    
+    async getProcessWithdrawnAmount(userId) {
+        try {
+            const snapshot = await this.db.collection('withdrawals').where('userId', '==', userId).where('status', '==', 'pending').get()
+            const totalWithdrawnProcessAmount = snapshot.docs.reduce((sum, doc) => sum + (doc.data().amount || 0), 0)
+            return parseFloat(totalWithdrawnProcessAmount.toFixed(2))
+        } catch (error) {
+            console.error('Error fetching withdrawn amount:', error)
+            return 0
         }
     }
 }

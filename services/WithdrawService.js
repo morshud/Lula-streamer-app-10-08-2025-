@@ -56,6 +56,17 @@ class WithdrawService extends BaseService {
             return this.handleError(error.message)
         }
     }
+
+    async getTotalWithdrawnAmount(userId) {
+        try {
+            const snapshot = await this.db.collection('withdrawals').where('userId', '==', userId).where('status', '==', 'completed').get()
+            const totalWithdrawn = snapshot.docs.reduce((sum, doc) => sum + (doc.data().amount || 0), 0)
+            return parseFloat(totalWithdrawn.toFixed(2))
+        } catch (error) {
+            console.error('Error fetching withdrawn amount:', error)
+            return 0
+        }
+    }
 }
 
 export default new WithdrawService('withdrawals')

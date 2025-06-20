@@ -16,8 +16,10 @@ export default function Analytics() {
     const navigation = useNavigation()
     const [pieData, setPieData] = useState([])
     const [states, setStates] = useState(null)
-    const [userData, setUserData] = useState(null) // State to store user profile data
-    const [isLoading, setIsLoading] = useState(true) // Loading state for user data
+    const [userData, setUserData] = useState(null)
+    const [isLoading, setIsLoading] = useState(true)
+    const [totalWithdrawn, setTotalWithdrawn] = useState(0)
+    const [totalWithdrawnProcessAmount, setWithdrawnProcessAmount] = useState(0)
 
     // Fetch user profile data
     const fetchUserData = async () => {
@@ -39,15 +41,18 @@ export default function Analytics() {
         try {
             const res = await HomeService.getLastFourWeeksEarnings(user.id)
             const statesCounts = await HomeService.getHomeCounts(user.id)
+            const withdrawnAmount = await HomeService.getTotalWithdrawnAmount(user.id)
+            const withdrawnProcessAmount = await HomeService.getProcessWithdrawnAmount(user.id)
 
             setStates(statesCounts.data)
             setPieData(res)
+            setTotalWithdrawn(withdrawnAmount)
+            setWithdrawnProcessAmount(withdrawnProcessAmount)
         } catch (error) {
             handleError(error)
         }
     }
 
-    // Fetch user data and analytics data when screen is focused
     useFocusEffect(
         useCallback(() => {
             fetchUserData()
@@ -108,11 +113,29 @@ export default function Analytics() {
                                 <Text style={styles.metricTitle}>Total Earnings</Text>
                             </View>
                             <Text style={styles.metricValue}>{states?.totalEarnings ?? 0} Coins</Text>
+                        </View>
+                        <View style={styles.metricCard2}>
+                            <View style={styles.metricHeader}>
+                                <Text style={styles.metricTitle}>Earnings Avalible In Wallet</Text>
+                            </View>
+                            <Text style={styles.metricValue}>{parseFloat(states?.totalEarnings - totalWithdrawn).toFixed(2) ?? 0} Coins</Text>
+                        </View>
+                        <View style={styles.metricCard2}>
+                            <View style={styles.metricHeader}>
+                                <Text style={styles.metricTitle}>Total Withdrawn</Text>
+                            </View>
+                            <Text style={styles.metricValue}>{totalWithdrawn ?? 0} Coins</Text>
                             <TouchableOpacity onPress={() => navigation.navigate('Withdraw')} style={styles.videoTextDiv}>
                                 <LinearGradient colors={['#57A10D', '#57A10D']} className="w-20 py-1 rounded-md">
                                     <Text style={styles.videoText} className="text-center">Withdraw</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
+                        </View>
+                        <View style={styles.metricCard2}>
+                            <View style={styles.metricHeader}>
+                                <Text style={styles.metricTitle}>Withdrawn In Process</Text>
+                            </View>
+                            <Text style={styles.metricValue}>{totalWithdrawnProcessAmount} Coins</Text>
                         </View>
                     </View>
 
@@ -128,7 +151,7 @@ export default function Analytics() {
                             <PieChart
                                 data={pieData}
                                 width={width - 50}
-                                height={200}
+                                height={180}
                                 chartConfig={{
                                     backgroundColor: '#fff',
                                     backgroundGradientFrom: '#fff',
@@ -143,7 +166,6 @@ export default function Analytics() {
                         </View>
                     </View>
 
-                    {/* Bottom spacing */}
                     <View style={{ height: 30 }} />
                 </ScrollView>
             </LinearGradient>
@@ -233,8 +255,9 @@ const styles = StyleSheet.create({
     },
     metricCard: {
         backgroundColor: '#fff',
-        borderRadius: 15,
-        padding: 15,
+        borderRadius: 8,
+        paddingHorizontal: 15,
+        paddingVertical: 7,
         width: '48%',
         marginBottom: 15,
         borderWidth: 1,
@@ -245,7 +268,7 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         padding: 15,
         width: '100%',
-        marginBottom: 15,
+        marginBottom: 8,
         borderWidth: 1,
         borderColor: '#EEE',
         position: 'relative',
@@ -264,7 +287,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 5,
+        marginBottom: 2,
     },
     metricTitle: {
         color: '#666',

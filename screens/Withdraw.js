@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AuthService from '../services/AuthService';
@@ -27,8 +27,26 @@ const Withdraw = () => {
         amount: ''
     });
     const [amountError, setAmountError] = useState('');
+    const [totalWithdrawn, setTotalWithdrawn] = useState(0)
+    const finalCoins = user?.coins - totalWithdrawn;
+    console.log();
 
-    // Fetch user data and start polling
+    const fetchData = async () => {
+        try {
+            const withdrawnAmount = await WithdrawService.getTotalWithdrawnAmount(user.id)
+
+            setTotalWithdrawn(withdrawnAmount)
+        } catch (error) {
+            handleError(error)
+        }
+    }
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchData()
+        }, [])
+    )
+
     useEffect(() => {
         const getData = async () => {
             try {
@@ -76,8 +94,8 @@ const Withdraw = () => {
 
     // Validate amount in real-time
     const validateAmount = (amount) => {
-        if (amount && parseFloat(amount) > (user?.coins || 0)) {
-            setAmountError(`Insufficient balance! You have only ${user?.coins || 0} coins`);
+        if (amount && parseFloat(amount) > (parseFloat(finalCoins.toFixed(2)) || 0)) {
+            setAmountError(`Insufficient balance! You have only ${parseFloat(finalCoins.toFixed(2)) || 0} coins`);
         } else {
             setAmountError('');
         }
@@ -96,8 +114,8 @@ const Withdraw = () => {
                 return;
             }
             // Check for sufficient coins
-            if (parseFloat(formData.amount) > (user?.coins || 0)) {
-                setAmountError(`Insufficient balance! You have only ${user?.coins || 0} coins`);
+            if (parseFloat(formData.amount) > (parseFloat(finalCoins.toFixed(2)) || 0)) {
+                setAmountError(`Insufficient balance! You have only ${parseFloat(finalCoins.toFixed(2)) || 0} coins`);
                 return;
             }
 
