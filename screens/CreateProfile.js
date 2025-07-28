@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Dimensions } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import AntDesign from '@expo/vector-icons/AntDesign'
@@ -12,7 +12,7 @@ import AuthService from '../services/AuthService'
 import showToast from '../utils/toast'
 import { setUser } from '../store/slices/auth'
 import Loading from '../components/shared/Loading'
-import { launchImagePicker } from '../utils/ImagePickerHelper'
+import { launchImagePicker, checkMediaPermissions } from '../utils/ImagePickerHelper'
 
 const { width } = Dimensions.get('window')
 
@@ -57,6 +57,18 @@ export default function CreateProfile() {
     const [profileImage, setProfileImage] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
 
+    useEffect(() => {
+        const requestPermissions = async () => {
+            const status = await checkMediaPermissions();
+            if (status !== 'granted') {
+            console.log('Media library permissions not granted!');
+            // Handle the case where permissions are not granted
+            // You might want to show a message to the user or disable image picking functionality
+            }
+        };
+
+        requestPermissions();
+    }, []);
     const handleNext = async () => {
         try {
             if (step < 4) {
@@ -70,6 +82,8 @@ export default function CreateProfile() {
                 ...formData,
                 profileUri,
                 profileCompleted: true,
+                // Set status based on user role
+                status: user.role === "STREAMER" ? false : true
             }
 
             const res = await AuthService.update(user.id, body)
@@ -78,7 +92,12 @@ export default function CreateProfile() {
                 const res = await AuthService.getUser(user.id)
                 dispatch(setUser(res.user))
                 showToast(res.message, "success")
-                navigation.reset({ index: 0, routes: [{ name: "Main" }] })
+                // Navigate to PendingVerification if streamer, otherwise to Main
+                if (user.role === "STREAMER") {
+                    navigation.reset({ index: 0, routes: [{ name: "PendingVerification" }] });
+                } else {
+                    navigation.reset({ index: 0, routes: [{ name: "Main" }] });
+                }
             } else {
                 showToast(res.message)
             }
@@ -365,9 +384,10 @@ const styles = StyleSheet.create({
         borderRadius: 500,
     },
     editButton: {
-        position: 'absolute',
-        right: 10,
-        bottom: 10,
+        position: 'relative',
+        right: 0,
+        left: 130,
+        bottom: 30,
         backgroundColor: '#8A2BE2',
         width: 40,
         height: 40,

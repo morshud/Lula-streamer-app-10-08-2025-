@@ -1,9 +1,7 @@
-import { Platform } from 'react-native'
+// import { Platform } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 
 export const launchImagePicker = async () => {
-    await checkMediaPermissions()
-
     const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -16,13 +14,11 @@ export const launchImagePicker = async () => {
     }
 }
 
-const checkMediaPermissions = async () => {
+export const checkMediaPermissions = async () => {
     if (Platform.OS !== 'web') {
-        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync()
-        if (permissionResult === false) {
-            return Promise.reject('We need permission to access your photos')
-        }
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+        return status
     }
 
-    return Promise.resolve()
+    return 'granted'
 }

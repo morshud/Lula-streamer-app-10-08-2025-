@@ -15,3 +15,5 @@ web-report/
 
 # Project
 .tmp/*
+/android
+/ios

@@ -38,7 +38,7 @@ const Posts = React.memo(({ posts, setPosts }) => {
     });
 
     return (
-        <View style={[styles.postsContainer, { backgroundColor: '#fff' }]}>
+        <View style={[styles.postsContainer]}>
             <Text
                 style={[styles.sectionTitle, { color: '#333' }]}
                 allowFontScaling={true}
@@ -54,10 +54,7 @@ const Posts = React.memo(({ posts, setPosts }) => {
                         accessibilityLabel={`View ${t} posts`}
                         accessibilityRole="button"
                     >
-                        <Text
-                            style={[styles.tabLabel, tab === t && styles.activeTabLabel, { color: '#555' }]}
-                            allowFontScaling={true}
-                        >
+                        <Text style={[styles.tabLabel, tab === t && styles.activeTabLabel]}>
                             {t}
                         </Text>
                     </TouchableOpacity>
@@ -69,16 +66,11 @@ const Posts = React.memo(({ posts, setPosts }) => {
                 contentContainerStyle={{ paddingBottom: 24 }}
                 ListEmptyComponent={() => (
                     <View style={styles.emptyContainer}>
-                        <Text
-                            style={[styles.emptyText, { color: '#666' }]}
-                            allowFontScaling={true}
-                        >
-                            No posts found.
-                        </Text>
+                        <Text style={styles.emptyText}>No posts found</Text>
                     </View>
                 )}
                 renderItem={({ item }) => (
-                    <View style={[styles.postCard, { backgroundColor: '#6200EE' }]}>
+                    <View style={[styles.postCard]}>
                         <View style={styles.postHeader}>
                             <View style={styles.postUser}>
                                 <Image
@@ -88,7 +80,7 @@ const Posts = React.memo(({ posts, setPosts }) => {
                                 />
                                 <View style={styles.postUserInfo}>
                                     <Text
-                                        style={[styles.postUserName, { color: '#fff' }]}
+                                        style={[styles.postUserName]}
                                         allowFontScaling={true}
                                     >
                                         {user.name}
@@ -96,7 +88,7 @@ const Posts = React.memo(({ posts, setPosts }) => {
                                 </View>
                             </View>
                         </View>
-                        <Text style={[styles.postCaption, { color: '#fff' }]} allowFontScaling={true}>
+                        <Text style={[styles.postCaption]} allowFontScaling={true}>
                             {item.caption}
                         </Text>
                         {item.type === 'FEED' ? (
@@ -117,18 +109,18 @@ const Posts = React.memo(({ posts, setPosts }) => {
                         )}
                         <View style={styles.postFooter}>
                             <View style={styles.postAction}>
-                                <Ionicons name="heart-outline" size={20} color={'#fff'} />
+                                <Ionicons name="heart-outline" size={20} />
                                 <Text
-                                    style={[styles.postActionText, { color: '#fff' }]}
+                                    style={[styles.postActionText]}
                                     allowFontScaling={true}
                                 >
                                     {item.likes.length} Likes
                                 </Text>
                             </View>
                             <View style={styles.postAction}>
-                                <Ionicons name="chatbubble-outline" size={20} color={'#fff'} />
+                                <Ionicons name="chatbubble-outline" size={20} />
                                 <Text
-                                    style={[styles.postActionText, { color: '#fff' }]}
+                                    style={[styles.postActionText]}
                                     allowFontScaling={true}
                                 >
                                     {item.comments.length} Comments
@@ -263,11 +255,11 @@ const StreamerProfile = () => {
                 <Loading isVisible={true} />
             ) : (
                 <ScrollView
-                    style={[styles.container, { backgroundColor: '#fff' }]}
+                    style={[styles.container]}
                     contentContainerStyle={{ paddingBottom: 20 }}
                 >
                     <LinearGradient
-                        colors={['#fff', '#fff']}
+                        colors={['#F1F1FE', '#F8F8FF']}
                         style={styles.profileHeader}
                     >
                         <TouchableOpacity
@@ -302,26 +294,29 @@ const StreamerProfile = () => {
                             >
                                 {data?.name}
                             </Text>
-                            <View style={styles.profileDetails}>
-                                <Text
-                                    style={[styles.location, { color: 'gray' }]}
-                                    allowFontScaling={true}
-                                >
-                                    Gender: {data?.gender}
-                                </Text>
+                            
+                            <View style={styles.detailsRow}>
+                                <View style={styles.detailItem}>
+                                    <Feather name="user" size={14} color="#888" />
+                                    <Text style={styles.detailText}>
+                                        {data?.gender}
+                                    </Text>
+                                </View>
+
                                 {/* <Text
                                     style={[styles.location, { color: 'gray' }]}
                                     allowFontScaling={true}
                                 >
                                     Phone: {data?.phoneNumber}
                                 </Text> */}
+                                
+                                <View style={styles.detailItem}>
+                                    <Ionicons name="language-outline" size={14} color="#888" />
+                                    <Text style={styles.detailText}>
+                                        {data?.selectedLanguages?.join(', ')}
+                                    </Text>
+                                </View>
                             </View>
-                            <Text
-                                style={[styles.location, { color: 'gray' }]}
-                                allowFontScaling={true}
-                            >
-                                Languages: {data?.selectedLanguages}
-                            </Text>
                             {/* <Text
                                 style={[styles.location, { color: theme === 'dark' ? '#ccc' : 'gray' }]}
                                 allowFontScaling={true}
@@ -349,7 +344,7 @@ const StreamerProfile = () => {
                             label="Followings"
                             onPress={() => navigation.navigate('Following')}
                         />
-                        <TouchableOpacity
+                        {/* <TouchableOpacity
                             onPressIn={() => (scale.value = withSpring(0.95))}
                             onPressOut={() => (scale.value = withSpring(1))}
                             accessibilityRole="button"
@@ -371,7 +366,7 @@ const StreamerProfile = () => {
                                     </Text>
                                 </Animated.View>
                             </View>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                     </View>
 
                     <View style={styles.buttonDiv}>
@@ -386,24 +381,258 @@ const StreamerProfile = () => {
     );
 };
 
+// const styles = StyleSheet.create({
+//     container: {
+//         flexGrow: 1,
+//         padding: 20,
+//     },
+//     header: {
+//         position: 'absolute',
+//         top: 0,
+//         right: 10,
+//     },
+//     profileHeader: {
+//         flexDirection: 'row',
+//         alignItems: 'center',
+//         gap: 12,
+//         marginBottom: 20,
+//     },
+//     profileImageContainer: {
+//         position: 'relative',
+//     },
+//     profileImage: {
+//         width: 100,
+//         height: 100,
+//         borderRadius: 50,
+//     },
+//     profileRing: {
+//         position: 'absolute',
+//         bottom: 0,
+//         right: 0,
+//         width: 30,
+//         height: 30,
+//         borderRadius: 15,
+//         backgroundColor: '#6200EE',
+//         justifyContent: 'center',
+//         alignItems: 'center',
+//     },
+//     profileRingText: {
+//         color: '#fff',
+//         fontSize: 10,
+//         fontWeight: 'bold',
+//     },
+//     textContainer: {
+//         flex: 1,
+//     },
+//     username: {
+//         fontSize: 20,
+//         fontWeight: '700',
+//     },
+//     profileDetails: {
+//         flexDirection: 'row',
+//         flexWrap: 'wrap',
+//         marginTop: 5,
+//         gap: 10,
+//     },
+//     location: {
+//         fontSize: 13,
+//         textTransform: 'capitalize',
+//     },
+//     editButton: {
+//         flexDirection: 'row',
+//         alignItems: 'center',
+//         backgroundColor: '#6200EE',
+//         paddingVertical: 8,
+//         paddingHorizontal: 12,
+//         borderRadius: 20,
+//         marginTop: 10,
+//     },
+//     editButtonText: {
+//         color: '#fff',
+//         fontSize: 14,
+//         marginLeft: 5,
+//     },
+//     statsContainer: {
+//         flexDirection: 'row',
+//         justifyContent: 'space-between',
+//         alignItems: 'center',
+//         width: '100%',
+//         marginBottom: 20,
+//     },
+//     statCardMain: {
+//         flex: 1,
+//         alignItems: 'center',
+//         justifyContent: 'center',
+//     },
+//     statCard: {
+//         alignItems: 'center',
+//         paddingVertical: 10,
+//         paddingHorizontal: 10,
+//     },
+//     statValue: {
+//         fontSize: 16,
+//         fontWeight: '600',
+//         color: '#000',
+//         marginTop: 5,
+//     },
+//     statLabel: {
+//         fontSize: 14,
+//         color: '#000',
+//         marginTop: 2,
+//     },
+//     buttonDiv: {
+//         flexDirection: 'row',
+//         justifyContent: 'space-between',
+//         marginBottom: 20,
+//     },
+//     buttonContainer: {
+//         width: '48%',
+//     },
+//     button: {
+//         paddingHorizontal: 10,
+//         paddingVertical: 15,
+//         borderRadius: 40,
+//         flexDirection: 'row',
+//         justifyContent: 'center',
+//         borderWidth: 0.5,
+//         borderColor: 'grey',
+//     },
+//     buttonText: {
+//         fontSize: 16,
+//     },
+//     postsContainer: {
+//         flex: 1,
+//     },
+//     sectionTitle: {
+//         fontSize: 20,
+//         fontWeight: '700',
+//         marginBottom: 10,
+//     },
+//     tabBar: {
+//         flexDirection: 'row',
+//         justifyContent: 'space-around',
+//         marginBottom: 15,
+//     },
+//     tabItem: {
+//         paddingVertical: 8,
+//         paddingHorizontal: 12,
+//     },
+//     activeTabItem: {
+//         borderBottomWidth: 2,
+//         borderBottomColor: '#6200EE',
+//     },
+//     tabLabel: {
+//         fontSize: 14,
+//         fontWeight: '500',
+//     },
+//     activeTabLabel: {
+//         color: '#6200EE',
+//         fontWeight: '600',
+//     },
+//     emptyContainer: {
+//         alignItems: 'center',
+//         justifyContent: 'center',
+//         marginTop: 50,
+//     },
+//     emptyText: {
+//         fontSize: 16,
+//     },
+//     postCard: {
+//         backgroundColor: '#FFFFFF',
+//         borderRadius: 16,
+//         padding: 16,
+//         marginBottom: 16,
+//         shadowColor: '#000',
+//         shadowOffset: { width: 0, height: 2 },
+//         shadowOpacity: 0.05,
+//         shadowRadius: 6,
+//         elevation: 2,
+//     },
+//     postHeader: {
+//         marginBottom: 12,
+//     },
+//     postUser: {
+//         flexDirection: 'row',
+//         alignItems: 'center',
+//     },
+//     postUserImage: {
+//         width: 36,
+//         height: 36,
+//         borderRadius: 18,
+//     },
+//     postUserInfo: {
+//         marginLeft: 12,
+//     },
+//     postUserName: {
+//         fontSize: 16,
+//         fontWeight: '600',
+//         color: '#333',
+//     },
+//     postCaption: {
+//         fontSize: 14,
+//         color: '#555',
+//         marginBottom: 12,
+//         lineHeight: 20,
+//     },
+//     postMedia: {
+//         width: '100%',
+//         height: 240,
+//         borderRadius: 12,
+//         marginBottom: 12,
+//     },
+//     videoPlayer: {
+//         width: '100%',
+//         height: 240,
+//         borderRadius: 12,
+//         marginBottom: 12,
+//     },
+//     postFooter: {
+//         flexDirection: 'row',
+//         justifyContent: 'space-around',
+//     },
+//     postAction: {
+//         flexDirection: 'row',
+//         alignItems: 'center',
+//     },
+//     postActionText: {
+//         fontSize: 14,
+//         color: '#888',
+//         marginLeft: 6,
+//     },
+// });
 const styles = StyleSheet.create({
     container: {
-        flexGrow: 1,
-        padding: 20,
+        flex: 1,
+        backgroundColor: '#FFFFFF',
     },
     header: {
         position: 'absolute',
-        top: 0,
-        right: 10,
+        top: 45,
+        right: 15,
     },
     profileHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-        marginBottom: 20,
+        padding: 24,
+        paddingBottom: 32,
+        borderBottomLeftRadius: 32,
+        borderBottomRightRadius: 32,
     },
     profileImageContainer: {
         position: 'relative',
+    },
+    profileImageRing: {
+        width: 110,
+        height: 110,
+        borderRadius: 55,
+        backgroundColor: '#FFFFFF',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#6156E2',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.2,
+        shadowRadius: 16,
+        elevation: 8,
     },
     profileImage: {
         width: 100,
@@ -428,175 +657,232 @@ const styles = StyleSheet.create({
     },
     textContainer: {
         flex: 1,
+        marginLeft: 16,
     },
-    username: {
-        fontSize: 20,
-        fontWeight: '700',
-    },
-    profileDetails: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        marginTop: 5,
-        gap: 10,
-    },
-    location: {
-        fontSize: 13,
-        textTransform: 'capitalize',
-    },
-    editButton: {
+    nameRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#6200EE',
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 20,
-        marginTop: 10,
+        justifyContent: 'space-between',
+        marginBottom: 8,
     },
-    editButtonText: {
-        color: '#fff',
+    username: {
+        fontSize: 22,
+        fontWeight: '700',
+        color: '#333',
+    },
+    statusContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(97, 86, 226, 0.1)',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    statusDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        marginRight: 6,
+    },
+    statusText: {
+        fontSize: 12,
+        fontWeight: '500',
+        color: '#6156E2',
+    },
+    detailsRow: {
+        marginTop: 8,
+    },
+    detailItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 6,
+    },
+    detailText: {
         fontSize: 14,
-        marginLeft: 5,
+        color: '#666',
+        marginLeft: 8,
+        textTransform: 'capitalize'
     },
     statsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        width: '100%',
-        marginBottom: 20,
-    },
-    statCardMain: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
+        paddingHorizontal: 24,
+        marginTop: -16,
+        marginBottom: 24,
     },
     statCard: {
         alignItems: 'center',
-        paddingVertical: 10,
-        paddingHorizontal: 10,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        padding: 16,
+        width: 100,
+        shadowColor: '#6156E2',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 4,
     },
     statValue: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#000',
-        marginTop: 5,
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#333',
+        marginTop: 8,
     },
     statLabel: {
         fontSize: 14,
-        color: '#000',
-        marginTop: 2,
+        color: '#888',
+        marginTop: 4,
     },
     buttonDiv: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 20,
-    },
-    buttonContainer: {
-        width: '48%',
+        paddingHorizontal: 24,
+        marginBottom: 24,
     },
     button: {
-        paddingHorizontal: 10,
-        paddingVertical: 15,
-        borderRadius: 40,
-        flexDirection: 'row',
+        paddingVertical: 14,
+        borderRadius: 16,
+        alignItems: 'center',
         justifyContent: 'center',
-        borderWidth: 0.5,
-        borderColor: 'grey',
+        minWidth: '48%',
+        shadowColor: '#6156E2',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 6,
+    },
+    secondaryButton: {
+        borderWidth: 1,
+        borderColor: '#6156E2',
     },
     buttonText: {
         fontSize: 16,
+        fontWeight: '600',
+        color: '#FFFFFF',
     },
-    postsContainer: {
-        flex: 1,
+    secondaryButtonText: {
+        color: '#6156E2',
+    },
+    sectionHeader: {
+        paddingHorizontal: 24,
+        marginBottom: 16,
     },
     sectionTitle: {
         fontSize: 20,
         fontWeight: '700',
-        marginBottom: 10,
+        color: '#333',
+    },
+    divider: {
+        height: 3,
+        width: 40,
+        backgroundColor: '#6156E2',
+        borderRadius: 2,
+        marginTop: 8,
+    },
+    postsContainer: {
+        paddingHorizontal: 24,
+        marginTop: 8,
     },
     tabBar: {
         flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginBottom: 15,
+        backgroundColor: '#F5F5FF',
+        borderRadius: 12,
+        padding: 4,
+        marginBottom: 16,
     },
     tabItem: {
-        paddingVertical: 8,
-        paddingHorizontal: 12,
+        flex: 1,
+        alignItems: 'center',
+        paddingVertical: 10,
+        borderRadius: 10,
     },
     activeTabItem: {
-        borderBottomWidth: 2,
-        borderBottomColor: '#6200EE',
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#6156E2',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
     },
     tabLabel: {
         fontSize: 14,
         fontWeight: '500',
+        color: '#888',
     },
     activeTabLabel: {
-        color: '#6200EE',
+        color: '#6156E2',
         fontWeight: '600',
     },
     emptyContainer: {
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 50,
+        paddingVertical: 40,
     },
     emptyText: {
         fontSize: 16,
+        color: '#888',
     },
     postCard: {
-        borderRadius: 10,
-        padding: 15,
-        marginBottom: 15,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
         elevation: 2,
     },
     postHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: 12,
     },
     postUser: {
         flexDirection: 'row',
         alignItems: 'center',
     },
     postUserImage: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
     },
     postUserInfo: {
-        marginLeft: 10,
+        marginLeft: 12,
     },
     postUserName: {
         fontSize: 16,
         fontWeight: '600',
+        color: '#333',
     },
     postCaption: {
         fontSize: 14,
-        marginBottom: 10,
+        color: '#555',
+        marginBottom: 12,
+        lineHeight: 20,
     },
     postMedia: {
         width: '100%',
-        height: 200,
-        borderRadius: 10,
+        height: 240,
+        borderRadius: 12,
+        marginBottom: 12,
     },
     videoPlayer: {
         width: '100%',
-        height: 300,
-        borderRadius: 10,
+        height: 240,
+        borderRadius: 12,
+        marginBottom: 12,
     },
     postFooter: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 10,
+        justifyContent: 'space-around',
     },
     postAction: {
         flexDirection: 'row',
         alignItems: 'center',
     },
     postActionText: {
-        fontSize: 12,
-        marginLeft: 5,
+        fontSize: 14,
+        color: '#888',
+        marginLeft: 6,
     },
 });
 

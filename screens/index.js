@@ -29,6 +29,9 @@ import StreamerProfile from './StreamerProfile'
 import Menu from './Menu'
 import CreatePost from "./CreatePost"
 import Withdraw from "./Withdraw"
+import PendingVerification from './PendingVerification'
+import CreateVideo from './CreateVideo'
+import CallLogScreen from './CallLogScreen'
 
 export {
     NoInternet,
@@ -59,4 +62,7 @@ export {
     Follower,
     Call,
     Withdraw,
+    PendingVerification,
+    CreateVideo,
+    CallLogScreen
 }

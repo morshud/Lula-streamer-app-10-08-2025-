@@ -4,7 +4,9 @@ import showToast from './toast'
 
 export function handleError(error) {
     console.log(error)
-    showToast(error.message)
+    // Ensure the message passed to showToast is a string
+    const errorMessage = typeof error.message === 'string' ? error.message : 'An unexpected error occurred';
+    showToast(errorMessage);
 }
 
 export function stringFormater(value = '', count = 40) {

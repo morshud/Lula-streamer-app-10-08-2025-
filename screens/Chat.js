@@ -4,6 +4,7 @@ import avatar from '../assets/images/men.png'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useNavigation, useRoute } from '@react-navigation/native'
+import AuthService from '../services/AuthService'
 import ChatService from '../services/ChatService'
 import { handleError } from '../utils/function'
 import { useSelector } from 'react-redux'
@@ -12,6 +13,8 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window')
 
 const Chat = () => {
     const { user } = useSelector((state) => state.auth)
+    const [data, setData] = useState(null)
+    const [isLoading, setIsLoading] = useState(true)
     const {
         params: { chatId },
     } = useRoute()
@@ -23,6 +26,20 @@ const Chat = () => {
         const unsubscribe = ChatService.listenToMessages(chatId, (messages) => {
             setMessages(messages)
         })
+        const getData = async () => {
+            try {
+                setIsLoading(true)
+                const res = await AuthService.getUser(user.id)
+                if (!res.error) {
+                    setData(res.user)
+                }
+            } catch (error) {
+                handleError(error)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        getData()
         return () => {
             unsubscribe()
         }
@@ -61,7 +78,7 @@ const Chat = () => {
         <LinearGradient colors={['rgba(171, 73, 161, 0.9)', 'rgba(97, 86, 226, 0.9)']} style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.headerText}>Messages</Text>
-                <Image source={avatar} style={styles.image} />
+                <Image source={data?.profileUri ? { uri: data?.profileUri } : {avatar}} style={styles.image} />
             </View>
             <View style={styles.content}>
                 <FlatList data={messages} renderItem={renderItem} keyExtractor={(item) => item.id} style={styles.messageList} />

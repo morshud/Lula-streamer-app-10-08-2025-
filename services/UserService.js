@@ -47,6 +47,37 @@ class UserService extends BaseService {
             return this.handleError("Failed to fetch users.");
         }
     }
+
+    /**
+     * Fetches a single user by their document ID.
+     * @param {string} userId - The ID of the user document to fetch.
+     * @returns {Promise<Object>} - Object containing the user data or an error.
+     */
+    async getUserById(userId) {
+        try {
+            const docRef = this.db.collection(this.#collection).doc(userId);
+            const docSnapshot = await docRef.get();
+
+            if (!docSnapshot.exists) {
+                return this.handleError("User not found.");
+            }
+
+            return { error: false, user: this.fromFirestore(docSnapshot) };
+        } catch (error) {
+            console.error("Error fetching user by ID:", error);
+            return this.handleError("Failed to fetch user.");
+        }
+    }
+
+    // Assuming you have a method to transform Firestore document to user object
+    fromFirestore(doc) {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            // Add any necessary data transformations here
+        };
+    }
 }
 
 export default new UserService("user");

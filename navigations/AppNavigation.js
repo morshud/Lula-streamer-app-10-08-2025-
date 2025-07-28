@@ -37,6 +37,9 @@ import {
     Follower,
     Call,
     Withdraw,
+    PendingVerification,
+    CreateVideo,
+    CallLogScreen,
 } from '../screens'
 import { handleError } from '../utils/function'
 import AuthService from '../services/AuthService'
@@ -74,32 +77,32 @@ const AppNavigation = () => {
         }
     }, [])
 
-    useEffect(() => {
-        if (!currentUser) {
-            setIsLoading(false)
-            return
-        }
-
-        const getUser = async () => {
-            try {
-                const res = await AuthService.getUser(currentUser.uid)
-                if (!res.error) {
-                    dispatch(setUser(res.user))
-                } else {
-                    showToast(res.message)
-                }
-            } catch (error) {
-                handleError(error)
-            } finally {
-                setIsLoading(false)
-            }
-        }
-        getUser()
-    }, [currentUser])
-
+  
     if (user) {
         new CallManager(user)
     }
+useEffect(() => {
+  const restoreUserFromStorage = async () => {
+    try {
+      const storedUserId = await AsyncStorage.getItem('loggedInUserId')
+      if (storedUserId) {
+        const res = await AuthService.getUser(storedUserId)
+        if (!res.error) {
+          dispatch(setUser(res.user))
+        } else {
+          console.warn('User not found')
+          await AsyncStorage.removeItem('loggedInUserId') // cleanup
+        }
+      }
+    } catch (error) {
+      console.error('Failed to restore user from AsyncStorage:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  restoreUserFromStorage()
+}, [])
 
     useEffect(() => {
         ;(async () => {
@@ -136,7 +139,12 @@ const AppNavigation = () => {
         let initial = isFirstLaunch ? 'OnBoarding1' : 'Login'
 
         if (user && user.profileCompleted) {
-            initial = 'Main'
+            // Check streamer status after profile completion
+            if (user.role === "STREAMER" && user.status === false) {
+                initial = 'PendingVerification';
+            } else {
+                initial = 'Main';
+            }
         }
         if (user && !user.profileCompleted) {
             initial = 'CreateProfile'
@@ -180,6 +188,9 @@ const AppNavigation = () => {
                         <Stack.Screen name="Main" component={BottomTabNavigation} />
                         <Stack.Screen name="Call" component={Call} />
                         <Stack.Screen name="Withdraw" component={Withdraw} />
+                        <Stack.Screen name="PendingVerification" component={PendingVerification} />
+                        <Stack.Screen name="CreateVideo" component={CreateVideo} />
+                        <Stack.Screen name="CallLogScreen" component={CallLogScreen} />
                     </Stack.Navigator>
                 </NavigationContainer>
             </CallWrapper>

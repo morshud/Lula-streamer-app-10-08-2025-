@@ -11,6 +11,7 @@ import SubmitButton from '../components/ui/SubmitButton'
 import { useDispatch } from 'react-redux'
 import Loading from '../components/shared/Loading'
 import { setUser } from '../store/slices/auth'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Login = () => {
     const dispatch = useDispatch()
@@ -33,31 +34,59 @@ const Login = () => {
         region: 'Asia',
         subregion: 'Southern Asia',
     })
-
-    const handleRegister = async () => {
-        try {
-            if (!phoneInput.current?.isValidNumber(phoneNumber)) {
-                showToast('Phone Number is Not Valid')
-                return
-            }
-            setIsSubmitting(true)
-            const fullPhoneNumber = `+${phoneInput.current.state.code}${phoneInput.current.state.number}`
-
-            // Send OTP to the phone number
-            const res = await AuthService.register(fullPhoneNumber)
-
-            if (!res.error) {
-                setIsOtpSent(true) // Set to true after OTP is sent
-                setConfirmation(res.confirmation) // Store confirmation for verification later
-            } else {
-                showToast('Failed to send OTP')
-            }
-        } catch (error) {
-            handleError(error)
-        } finally {
-            setIsSubmitting(false)
-        }
+const handleRegister = async () => {
+  try {
+    if (!phoneInput.current?.isValidNumber(phoneNumber)) {
+      showToast('Phone Number is Not Valid')
+      return
     }
+    setIsSubmitting(true)
+    const fullPhoneNumber = `+${phoneInput.current.state.code}${phoneInput.current.state.number}`
+
+    const res = await AuthService.register(fullPhoneNumber)
+    if (!res.error) {
+      setIsOtpSent(true)
+    } else {
+      showToast(res.message || 'Failed to send OTP')
+    }
+  } catch (error) {
+    handleError(error)
+  } finally {
+    setIsSubmitting(false)
+  }
+}
+
+const handleVerifyOtp = async () => {
+  try {
+    if (!otp.every((item) => item)) {
+      showToast('Please enter the OTP')
+      return
+    }
+    setIsSubmitting(true)
+    const res = await AuthService.verifyOtp(otp.join(''))
+
+    if (!res.error) {
+      const userId = res.user.id
+      await AuthService.updateStatusShow(userId, true)
+      dispatch(setUser(res.user))
+      showToast('Phone number verified successfully!', 'success')
+      await AsyncStorage.setItem('loggedInUserId', res.user.id)
+dispatch(setUser(res.user))
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: res.user.profileCompleted ? (res.user.status ? 'Main' : 'PendingVerification') : 'CreateProfile' }],
+      })
+    } else {
+      showToast(res.message || 'Invalid OTP')
+    }
+  } catch (error) {
+    handleError(error)
+  } finally {
+    setIsSubmitting(false)
+  }
+}
+
 
     const handleOtpChange = (text, index) => {
         const updatedOtp = [...otp]
@@ -76,37 +105,7 @@ const Login = () => {
         }
     }
 
-    const handleVerifyOtp = async () => {
-        try {
-            if (!otp.every((item) => item)) {
-                showToast('Please enter the OTP')
-                return
-            }
-            setIsSubmitting(true)
-            // Verify the OTP entered by the user
-            const res = await AuthService.verifyOtp(otp.join(''), confirmation)
 
-            if (!res.error) {
-                // OTP verified, user is logged in
-                const userId = res.user.id;
-                // Ensure statusShow is set to true
-                if (typeof AuthService.updateStatusShow === 'function') {
-                    await AuthService.updateStatusShow(userId, true);
-                } else {
-                    console.error('updateStatusShow is not a function');
-                }
-                dispatch(setUser(res.user))
-                showToast('Phone number verified successfully!', 'success')
-                navigation.reset({ index: 0, routes: [{ name: res.user.profileCompleted ? 'Main' : 'CreateProfile' }] })
-            } else {
-                showToast(res.message)
-            }
-        } catch (error) {
-            handleError(error)
-        } finally {
-            setIsSubmitting(false)
-        }
-    }
 
     return (
         <LinearGradient colors={['rgba(97, 86, 226, 0.9)', 'rgba(171, 73, 161, 0.9)', 'rgba(171, 73, 161, 0.9)', 'rgba(171, 73, 161, 0.9)']} style={styles.gradient}>

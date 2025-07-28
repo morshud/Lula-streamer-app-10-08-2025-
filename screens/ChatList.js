@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native'
 import { LinearGradient } from 'expo-linear-gradient'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import avatar from '../assets/images/men.png' // Your default avatar image
+import AuthService from '../services/AuthService'
 
 // Import your UserService (or the service you use to fetch chat data)
 import ChatService from '../services/ChatService' // assuming ChatService has getChatList method
@@ -12,6 +13,7 @@ import { formatDate } from '../utils/function'
 
 const ChatList = () => {
     const { user } = useSelector((state) => state.auth)
+    const [data, setData] = useState(null)
     const navigation = useNavigation()
     const [messages, setMessages] = useState([]) // Store messages
     const [lastVisible, setLastVisible] = useState(null) // Store last visible for pagination
@@ -46,6 +48,20 @@ const ChatList = () => {
     // Trigger fetchChats when component mounts
     useEffect(() => {
         fetchChats()
+        const getData = async () => {
+            try {
+                setLoading(true)
+                const res = await AuthService.getUser(user.id)
+                if (!res.error) {
+                    setData(res.user)
+                }
+            } catch (error) {
+                handleError(error)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        getData()
     }, [])
 
     // Render each chat item in FlatList
@@ -69,7 +85,7 @@ const ChatList = () => {
                         <MaterialIcons name="analytics" size={29} color="#fff" />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => navigation.navigate('StreamerProfile')}>
-                        <Image source={avatar} style={styles.headerIconsImage} />
+                        <Image source={data?.profileUri ? { uri: data?.profileUri } : {avatar}} style={styles.headerIconsImage} />
                     </TouchableOpacity>
                 </View>
             </View>

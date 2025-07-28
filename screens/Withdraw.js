@@ -225,26 +225,26 @@ const Withdraw = () => {
                         {amountError ? <Text style={styles.errorText}>{amountError}</Text> : null}
                         <TextInput
                             style={styles.input}
-                            placeholder="Bank Name (Optional)"
+                            placeholder="Bank Name"
                             value={formData.bankName}
                             onChangeText={(text) => setFormData({ ...formData, bankName: text })}
                         />
                         <TextInput
                             style={styles.input}
-                            placeholder="Bank Account Number (Optional)"
+                            placeholder="Bank Account Number"
                             value={formData.accountNumber}
                             onChangeText={(text) => setFormData({ ...formData, accountNumber: text })}
                             keyboardType="numeric"
                         />
                         <TextInput
                             style={styles.input}
-                            placeholder="IFSC Code (Optional)"
+                            placeholder="IFSC Code"
                             value={formData.ifsc}
                             onChangeText={(text) => setFormData({ ...formData, ifsc: text })}
                         />
                         <TextInput
                             style={styles.input}
-                            placeholder="UPI ID (Optional)"
+                            placeholder="UPI ID"
                             value={formData.upiId}
                             onChangeText={(text) => setFormData({ ...formData, upiId: text })}
                         />

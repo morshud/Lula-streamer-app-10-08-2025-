@@ -1,70 +1,168 @@
 import BaseService from './BaseService'
-import auth from '@react-native-firebase/auth'
+import axios from 'axios'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
+const API_BASE_URL = 'https://twilio-lula.onrender.com' // 🔗 Twilio backend endpoint
 
 class AuthService extends BaseService {
-    #collection
-    constructor(collectionName) {
-        super(collectionName)
-        this.#collection = collectionName
+  #collection
+  #confirmation = null
+  #phoneNumber = null
+
+  constructor(collectionName) {
+    super(collectionName)
+    this.#collection = collectionName
+  }
+
+  // 📲 Send OTP to phone
+  async register(phoneNumber) {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/send-otp`, {
+        phoneNumber,
+      })
+
+      if (!response.data.error) {
+        this.#phoneNumber = phoneNumber
+        return { error: false, confirmation: true }
+      }
+
+      return { error: true, message: response.data.message }
+    } catch (error) {
+      console.error('Error sending OTP:', error.message)
+      return this.handleError('Failed to send verification code')
     }
+  }
+// async verifyOtp(otpCode) {
+//   try {
+//     const response = await axios.post(`${API_BASE_URL}/verify-otp`, {
+//       phoneNumber: this.#phoneNumber,
+//       otp: otpCode,
+//     })
 
-    // Method for registering user with phone number
-    async register(phoneNumber) {
-        try {
-            // Send verification code
-            const confirmation = await this.auth.signInWithPhoneNumber(phoneNumber)
-            return { error: false, confirmation } // Returns the confirmation object that will be used for code verification
-        } catch (error) {
-            console.error('Error sending OTP:', error)
-            return this.handleError('Failed to send verification code')
-        }
+//     if (response.data.error) {
+//       return { error: true, message: response.data.message }
+//     }
+
+//     const userData = {
+//       phoneNumber: this.#phoneNumber,
+//       role: 'STREAMER',
+//       status: true,
+//       isDeleted: false,
+//       profileCompleted: false,
+//       statusShow: true,
+//     }
+
+//     const addedRef = await this.db.collection(this.#collection).add(this.toFirestore(userData))
+//     await addedRef.update({ id: addedRef.id })
+
+//     const newDoc = await addedRef.get()
+//     const user = this.fromFirestore(newDoc)
+
+//     // ✅ Save user ID to AsyncStorage
+//     await AsyncStorage.setItem('loggedInUserId', user.id)
+
+//     return { error: false, user }
+//   } catch (error) {
+//     console.error('Error verifying OTP:', error.message)
+//     return this.handleError('Failed to verify OTP')
+//   }
+// }
+
+
+  // 🔍 Get user by document ID
+    
+  async verifyOtp(otpCode) {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/verify-otp`, {
+        phoneNumber: this.#phoneNumber,
+        otp: otpCode,
+      });
+
+      if (response.data.error) {
+        return { error: true, message: response.data.message };
+      }
+
+      // Check if user already exists with the phone number
+      const existingUserQuery = await this.db.collection(this.#collection).where('phoneNumber', '==', this.#phoneNumber).limit(1).get();
+
+      if (!existingUserQuery.empty) {
+        // User exists, return existing user data
+        const existingDoc = existingUserQuery.docs[0];
+        const user = this.fromFirestore(existingDoc);
+
+        // Save user ID to AsyncStorage
+        await AsyncStorage.setItem('loggedInUserId', user.id);
+
+        return { error: false, user };
+      } else {
+        // User does not exist, create a new user document
+        const userData = {
+          phoneNumber: this.#phoneNumber,
+          role: 'STREAMER', // Assuming 'STREAMER' is the default role for new users
+          status: true,
+          isDeleted: false,
+          profileCompleted: false, // New users haven't completed their profile
+          statusShow: true,
+        };
+
+        const addedRef = await this.db.collection(this.#collection).add(this.toFirestore(userData));
+        await addedRef.update({ id: addedRef.id });
+
+        const newDoc = await addedRef.get();
+        const user = this.fromFirestore(newDoc);
+
+        // Save user ID to AsyncStorage
+        await AsyncStorage.setItem('loggedInUserId', user.id);
+
+        return { error: false, user };
+      }
+
+    } catch (error) {
+      console.error('Error verifying OTP:', error.message);
+      return this.handleError('Failed to verify OTP');
     }
+  }
 
-    // Method for verifying the OTP code entered by the user
-    async verifyOtp(verificationCode, confirmation) {
-        try {
-            // Confirm the verification code and sign the user in
-            const userCredential = await confirmation.confirm(verificationCode)
-            const user = userCredential.user
+  async updateUserProfile(userId, updatedData) {
+    try {
+      const userRef = this.db.collection(this.#collection).doc(userId);
+      await userRef.update(updatedData);
 
-            // Check if the user already exists in Firestore
-            const userRef = this.db.collection(this.#collection).doc(user.uid)
-
-            const doc = await userRef.get()
-
-            if (doc.exists) {
-                // If the user already exists, return the existing document
-
-                const myData = this.fromFirestore(doc)
-
-                if (myData.role !== 'STREAMER') {
-                    return { error: true, message: 'This Phone Number is Registered With other Platform' }
-                }
-                return { error: false, user: this.fromFirestore(doc) } // Return the existing user data
-            } else {
-                // If the user does not exist, create a new document for the user
-                const userData = {
-                    phoneNumber: user.phoneNumber,
-                    role: 'STREAMER',
-                    status: true,
-                    isDeleted: false,
-                    profileCompleted: false,
-                    id: user.uid,
-                    statusShow: true,
-                }
-
-                // Save user data to Firestore
-                await userRef.set(this.toFirestore(userData))
-                const data = await userRef.get()
-                return { error: false, user: this.fromFirestore(data) }
-            }
-        } catch (error) {
-            console.error('Error verifying OTP:', error)
-            return this.handleError('Failed to verify OTP')
-        }
+      // Optionally fetch and return the updated user object
+      const updatedDoc = await userRef.get();
+      if (updatedDoc.exists) {
+        return { error: false, user: this.fromFirestore(updatedDoc) };
+      } else {
+        // Should not happen if the update was successful
+        return { error: true, message: 'Failed to retrieve updated user data' };
+      }
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      return this.handleError('Failed to update user profile');
     }
+  }
 
-    async getUser(id) {
+  async deleteAccount() {
+    try {
+
+      const user = auth().currentUser
+      if (!user) {
+        return { error: true, message: 'User not found' }
+      }
+
+      await this.db.collection(this.#collection).doc(user.uid).delete()
+      await user.delete()
+
+      return { error: false, message: 'Account deleted permanently' }
+    } catch (error) {
+      if (error.code === 'auth/requires-recent-login') {
+        return { error: true, message: 'Please re-authenticate to delete your account' }
+      }
+      return this.handleError(error.message)
+    }
+  }
+
+  async getUser(id) {
         try {
             const userRef = this.db.collection(this.#collection).doc(id)
             const doc = await userRef.get()
