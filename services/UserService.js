@@ -40,8 +40,8 @@ class UserService extends BaseService {
             const users = snapshot.docs
             .map(doc => this.fromFirestore(doc))
             .filter(user => 
-                user.phoneNumber && user.phoneNumber.trim() !== '' &&
-                user.name && user.name.trim() !== ''
+                user.phoneNumber?.trim() && 
+                user.name?.trim()
             );
 
 

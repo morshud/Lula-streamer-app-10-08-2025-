@@ -140,7 +140,7 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
     const { callId, callerId } = notification.data || {};
     await notifee.cancelNotification(notification.id);
     if (pressAction.id === 'accept') {
-      navigate('CallComponent', { 
+      navigate('Call', { 
         id: { callId }, 
         userId: callerId,
         shouldJoin: true // Add this flag

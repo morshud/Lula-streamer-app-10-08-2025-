@@ -69,13 +69,15 @@ const CallComponent = () => {
     const { user } = useSelector((state) => state.auth)
     const navigation = useNavigation()
     const {
-        params: { userId, id, end },
+        params: { userId, id, end, shouldJoin },
     } = useRoute()
     const client = useStreamVideoClient()
     const [call, setCall] = useState(null)
     const [slug, setSlug] = useState(null)
     const callLogIdRef = useRef(null) // Ref to store the call log ID
     const callStartTimeRef = useRef(null) // Ref to store the call start time
+
+    console.log('Call params:', { userId, id, end, shouldJoin }); 
 
     const handleCall = async (callId) => {
         try {
@@ -203,18 +205,31 @@ const CallComponent = () => {
             if (id?.callId) {
                 slug = id.callId.toString()
                 const _call = client.call('default', slug)
+                
                 if (end) {
-                    // await Promise.all([_call.endCall(), endCall()])
                     await Promise.all([_call.endCall(), endCall('ended_by_receiver')])
+                    return
                 }
-                // _call.join({ create: false }).then(() => {
-                //     setCall(_call)
-                // })
+
+                // Check if we should immediately join (from notification acceptance)
+                if (shouldJoin) {
+                    console.log('Immediate join flow triggered');
+                    try {
+                        await _call.join({ create: false });
+                        setCall(_call);
+                        setSlug(slug);
+                        return; // Skip the rest
+                    } catch (error) {
+                        console.error('Error joining call:', error);
+                        endCall('failed');
+                        navigation.goBack();
+                    }
+                }
+
+                // Original join flow
                 try {
                     await _call.join({ create: false });
-                    
                     setCall(_call);
-                    
                     setSlug(slug);
                 } catch (error) {
                     console.error('Error joining call:', error);
@@ -222,6 +237,7 @@ const CallComponent = () => {
                     navigation.goBack();
                 }
             } else {
+                // Original call creation flow
                 slug = uuid.v4()
                 const res = await handleCall(slug)
                 if (res.error) {
@@ -234,11 +250,11 @@ const CallComponent = () => {
                     setCall(_call)
                 }).catch(error => {
                     console.error('Error creating/joining call:', error)
-                    showToast('Failed to create the call', 'error') // Assuming showToast is available
-                     endCall('failed_to_create')
-                     if (navigation.canGoBack()) {
-                         navigation.goBack()
-                     }
+                    showToast('Failed to create the call', 'error')
+                    endCall('failed_to_create')
+                    if (navigation.canGoBack()) {
+                        navigation.goBack()
+                    }
                 })
             }
         }
@@ -246,8 +262,6 @@ const CallComponent = () => {
 
         return () => {
             if (call?.state.callState !== CallingState.LEFT) {
-                console.log('effect return')
-
                 call?.endCall()
                 endCall('completed')
             }
