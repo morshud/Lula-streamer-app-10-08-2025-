@@ -10,6 +10,7 @@ web-build/
 
 # Native
 *.orig.*
+functions/
 *.jks
 *.p8
 *.p12

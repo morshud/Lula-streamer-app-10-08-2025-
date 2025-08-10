@@ -140,10 +140,20 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
     const { callId, callerId } = notification.data || {};
     await notifee.cancelNotification(notification.id);
     if (pressAction.id === 'accept') {
-      navigate('Call', { id: callId, userId: callerId  });
+      navigate('CallComponent', { 
+        id: { callId }, 
+        userId: callerId,
+        shouldJoin: true // Add this flag
+      });
       
     } else if (pressAction.id === 'decline') {
       await notifee.cancelNotification(notification.id);
+      navigate('CallComponent', {
+        id: { callId },
+        userId: callerId,
+        end: true
+      });
+      
     }
   }
 });
@@ -161,9 +171,9 @@ function AppContent() {
       const { callId } = notification.data || {};
 
       if (pressAction.id === 'accept') {
-        navigate('CallComponent', { id: callId });
+        navigate('Call', { id: callId });
       } else if (pressAction.id === 'decline') {
-        navigate('CallComponent', { id: callId, end: true });
+        navigate('Call', { id: callId, end: true });
       }
       await notifee.cancelNotification(notification.id);
     }
