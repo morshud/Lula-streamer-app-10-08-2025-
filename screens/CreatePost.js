@@ -18,7 +18,7 @@ const CreatePost = ({ navigation }) => {
     const pickMedia = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
-            allowsEditing: true,
+            allowsEditing: false,
             quality: 1,
         })
         if (!result.canceled) {

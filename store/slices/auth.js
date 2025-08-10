@@ -16,9 +16,11 @@ const authSlice = createSlice({
             return newState;
         },
         updateUser: (state, action) => {
-            if (state.user) {
-                state.user = { ...state.user, ...action.payload };
-            }
+            const newState = {
+                ...state,
+                user: action.payload,
+            };
+            return newState;
         },
         clearAuth: (state) => {
             const newState = {

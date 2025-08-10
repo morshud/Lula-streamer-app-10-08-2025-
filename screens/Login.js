@@ -44,10 +44,26 @@ const handleRegister = async () => {
     const fullPhoneNumber = `+${phoneInput.current.state.code}${phoneInput.current.state.number}`
 
     const res = await AuthService.register(fullPhoneNumber)
+    // if (!res.error) {
+    //   setIsOtpSent(true)
+    // } else {
+    //   showToast(res.message || 'Failed to send OTP')
+    // }
     if (!res.error) {
-      setIsOtpSent(true)
+      const userId = res.user.id
+      console.log(res.user)
+      await AuthService.updateStatusShow(userId, true)
+      dispatch(setUser(res.user))
+      showToast('Phone number verified successfully!', 'success')
+      await AsyncStorage.setItem('loggedInUserId', res.user.id)
+      dispatch(setUser(res.user))
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: res.user.profileCompleted ? (res.user.status ? 'Main' : 'PendingVerification') : 'CreateProfile' }],
+      })
     } else {
-      showToast(res.message || 'Failed to send OTP')
+      showToast(res.message || 'Invalid OTP')
     }
   } catch (error) {
     handleError(error)
@@ -71,7 +87,6 @@ const handleVerifyOtp = async () => {
       dispatch(setUser(res.user))
       showToast('Phone number verified successfully!', 'success')
       await AsyncStorage.setItem('loggedInUserId', res.user.id)
-dispatch(setUser(res.user))
 
       navigation.reset({
         index: 0,

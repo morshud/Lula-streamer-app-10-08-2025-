@@ -33,6 +33,31 @@ class PostService extends BaseService {
             return this.handleError(error.message)
         }
     }
+    
+    // Delete a post
+    async deletePost(postId) {
+        try {
+            await this.db.collection(this.#collection).doc(postId).delete()
+            return { error: false, message: 'Post deleted successfully' }
+        } catch (error) {
+            return this.handleError(error.message)
+        }
+    }
+
+    // Update an existing post
+    async updatePost(post) {
+        try {
+            const postRef = this.db.collection(this.#collection).doc(post.id);
+            // Prepare data to update, excluding the ID and any fields that shouldn't be changed this way
+            const updateData = { ...post };
+            delete updateData.id; // Don't try to update the document ID
+            delete updateData.createdAt; // Don't try to update the document ID
+            await postRef.update(updateData);
+            return { error: false, message: 'Post updated successfully' };
+        } catch (error) {
+            return this.handleError(error.message);
+        }
+    }
 
     // Get posts with pagination
     async getPosts(id) {

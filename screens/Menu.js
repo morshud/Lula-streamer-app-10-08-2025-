@@ -92,9 +92,9 @@ const MenuScreen = () => {
             {/* Menu Items */}
             <View className="flex-1 px-4 mt-4">
                 {[
-                    { label: 'Call Log', withArrow: true, link: 'CallLogScreen' },
-                    { label: 'Transaction History', withArrow: true, link: 'TransactionHistory' },
-                    { label: 'Notification', withArrow: true, link: 'Notification' },
+                    // { label: 'Call Log', withArrow: true, link: 'CallLogScreen' },
+                    // { label: 'Transaction History', withArrow: true, link: 'TransactionHistory' },
+                    // { label: 'Notification', withArrow: true, link: 'Notification' },
                     { label: 'Settings', withArrow: true, link: 'Setting' },
                 ].map((item, index) => {
 

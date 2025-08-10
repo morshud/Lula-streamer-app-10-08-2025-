@@ -16,15 +16,55 @@ class UserService extends BaseService {
      * @param {DocumentSnapshot} lastVisible - The last document from the previous fetch for pagination
      * @returns {Promise<Object>} - Object containing users data and a reference to the last document
      */
-    async getUsers(limit = 10, lastVisible = null) {
+    async getUsers(limit = 20, lastVisible = null) {
         try {
+            // Build query without phoneNumber != ""
             let query = this.db.collection(this.#collection)
                 .where('role', '==', 'USER')
                 .where('isDeleted', '==', false)
+                .where('statusShow', '==', true)
                 .limit(limit);
 
-            // If we have a lastVisible document, use startAfter for pagination
+            // Pagination if lastVisible provided
             if (lastVisible) {
+                query = query.startAfter(lastVisible);
+            }
+
+            const snapshot = await query.get();
+
+            if (snapshot.empty) {
+                return { users: [], lastVisible: null };
+            }
+
+            // Map and filter out users with missing or empty phoneNumber
+            const users = snapshot.docs
+            .map(doc => this.fromFirestore(doc))
+            .filter(user => 
+                user.phoneNumber && user.phoneNumber.trim() !== '' &&
+                user.name && user.name.trim() !== ''
+            );
+
+
+            const lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
+
+            return {
+                users,
+                lastVisible: lastVisibleDoc,
+            };
+        } catch (error) {
+            console.error("Error fetching users:", error);
+            return this.handleError("Failed to fetch users.");
+        }
+    }
+
+    async getOnlineUsers(limit = 20, lastVisible = null) {
+        try {
+            let query = await this.db.collection(this.#collection)
+                .where('role', '==', 'USER')
+                .where('statusShow', '==', true)
+                .limit(limit);
+
+             if (lastVisible) {
                 query = query.startAfter(lastVisible);
             }
 
@@ -42,9 +82,46 @@ class UserService extends BaseService {
                 users,
                 lastVisible: lastVisibleDoc, // Provide the last document for the next page
             };
+
+            // const users = snapshot.docs.map(doc => ({
+            //     id: doc.id,
+            //     ...doc.data(),
+            // }));
+
+            // return { users, lastVisible: null }; // No pagination for online users
         } catch (error) {
-            console.error("Error fetching users:", error);
-            return this.handleError("Failed to fetch users.");
+            console.error('Error fetching online users:', error);
+            throw error; // Or handle error as needed
+        }
+    }
+
+    async getOfflineUsers(limit, lastVisible) {
+        try {
+            let query = this.db.collection(this.#collection)
+                .where('role', '==', 'USER')
+                .where('statusShow', '==', false)
+                .orderBy('name'); // You need a field to order offline users for pagination
+
+            if (lastVisible) {
+                query = query.startAfter(lastVisible);
+            }
+
+            query = query.limit(limit);
+
+            const snapshot = await query.get();
+
+            const users = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+
+            // Get the last document for the next pagination
+            const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+
+            return { users, lastVisible: lastDoc };
+        } catch (error) {
+            console.error('Error fetching offline users:', error);
+            throw error; // Or handle error as needed
         }
     }
 

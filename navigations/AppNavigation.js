@@ -40,6 +40,7 @@ import {
     PendingVerification,
     CreateVideo,
     CallLogScreen,
+    EditPost,
 } from '../screens'
 import { handleError } from '../utils/function'
 import AuthService from '../services/AuthService'
@@ -191,6 +192,7 @@ useEffect(() => {
                         <Stack.Screen name="PendingVerification" component={PendingVerification} />
                         <Stack.Screen name="CreateVideo" component={CreateVideo} />
                         <Stack.Screen name="CallLogScreen" component={CallLogScreen} />
+                        <Stack.Screen name="EditPost" component={EditPost} />
                     </Stack.Navigator>
                 </NavigationContainer>
             </CallWrapper>

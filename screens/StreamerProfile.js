@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
     View,
     Text,
@@ -6,9 +6,9 @@ import {
     TouchableOpacity,
     StyleSheet,
     ScrollView,
-    ActivityIndicator,
     Appearance,
     FlatList,
+    Modal,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -19,23 +19,105 @@ import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { Entypo, Ionicons, FontAwesome } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { Video } from 'expo-av';
+import showToast from '../utils/toast'
 import AuthService from '../services/AuthService';
 import PostService from '../services/PostService';
 import { handleError } from '../utils/function';
 import Loading from '../components/shared/Loading';
-import coinImage from '../assets/images/coin.png'
+import coinImage from '../assets/images/coin.png';
+import RBSheet from 'react-native-raw-bottom-sheet';
+
+// Custom Dropdown Component
+const DropdownMenu = ({ visible, onClose, onEdit, onDelete, dropdownTop, dropdownLeft }) => {
+    if (!visible) return null;
+
+    return (
+        <Modal
+            transparent={true}
+            visible={visible}
+            onRequestClose={onClose}
+        >
+            <TouchableOpacity
+                style={styles.overlay}
+                onPress={onClose}
+                activeOpacity={1}
+            >
+                <View style={[styles.dropdown, { top: dropdownTop, left: dropdownLeft }]}>
+                    <TouchableOpacity onPress={onEdit} style={styles.dropdownItem}>
+                        <Text style={styles.dropdownItemText}>Edit Post</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={onDelete} style={styles.dropdownItem}>
+                        <Text style={styles.dropdownItemText}>Delete Post</Text>
+                    </TouchableOpacity>
+                </View>
+            </TouchableOpacity>
+        </Modal>
+    );
+};
 
 // Memoized Posts Component
 const Posts = React.memo(({ posts, setPosts }) => {
     const { user } = useSelector((state) => state.auth);
     const [tab, setTab] = useState('All');
     const theme = Appearance.getColorScheme();
+    const [dropdownVisible, setDropdownVisible] = useState(null);
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 }); // Store top and left
+    const [postToDelete, setPostToDelete] = useState(null);
+    const deleteRBSheetRef = useRef();
+    const navigation = useNavigation();
+    const dotsRef = useRef({}); // To store references to the dots-three-vertical touchables
 
     const filteredPosts = posts.filter((post) => {
         if (tab === 'All') return true;
         if (tab === 'Images') return post.type === 'FEED';
         return post.type === 'VIDEO';
     });
+
+    const handleEditPost = (post) => {
+        setDropdownVisible(null);
+        navigation.navigate('EditPost', { post: post });
+    };
+
+    const handleDeletePost = (post) => {
+        setPostToDelete(post);
+        setDropdownVisible(null);
+        deleteRBSheetRef.current.open();
+    };
+
+    const confirmDelete = async () => {
+        if (!postToDelete) {
+            console.warn('No post selected for deletion.');
+            return;
+        }
+        console.log('Attempting to delete post:', postToDelete.id);
+        try {
+            const result = await PostService.deletePost(postToDelete.id);
+            if (!result.error) {
+                setPosts(prevPosts => prevPosts.filter(post => post.id !== postToDelete.id));
+                showToast(result.message, 'success');
+            } else {
+                console.error('Error deleting post:', result.message);
+            }
+        } catch (error) {
+            handleError(error);
+        } finally {
+            deleteRBSheetRef.current.close();
+            setPostToDelete(null);
+        }
+    };
+
+    const handleDotsPress = (postId) => {
+        dotsRef.current[postId].measureInWindow((x, y, width, height) => {
+            // Calculate the position for the dropdown
+            // We want the dropdown's right edge to align with the dots icon's right edge
+            // and its top edge to be just below the dots icon.
+            const dropdownWidth = 120; // Assume a width for the dropdown, or measure it.
+            const calculatedLeft = x + width - dropdownWidth;
+            const calculatedTop = y + height;
+            setDropdownPosition({ top: calculatedTop, left: calculatedLeft });
+            setDropdownVisible(postId);
+        });
+    };
 
     return (
         <View style={[styles.postsContainer]}>
@@ -87,6 +169,20 @@ const Posts = React.memo(({ posts, setPosts }) => {
                                     </Text>
                                 </View>
                             </View>
+                            <TouchableOpacity
+                                ref={(el) => (dotsRef.current[item.id] = el)} // Assign ref here
+                                onPress={() => handleDotsPress(item.id)}
+                            >
+                                <Entypo name="dots-three-vertical" size={20} color={'#000'} />
+                            </TouchableOpacity>
+                            <DropdownMenu
+                                visible={dropdownVisible === item.id}
+                                onClose={() => setDropdownVisible(null)}
+                                onEdit={() => handleEditPost(item)}
+                                onDelete={() => handleDeletePost(item)}
+                                dropdownTop={dropdownPosition.top}
+                                dropdownLeft={dropdownPosition.left}
+                            />
                         </View>
                         <Text style={[styles.postCaption]} allowFontScaling={true}>
                             {item.caption}
@@ -95,6 +191,7 @@ const Posts = React.memo(({ posts, setPosts }) => {
                             <Image
                                 source={{ uri: item.mediaUrl }}
                                 style={styles.postMedia}
+                                resizeMode="cover"
                                 accessibilityLabel="Post image"
                             />
                         ) : (
@@ -130,6 +227,32 @@ const Posts = React.memo(({ posts, setPosts }) => {
                     </View>
                 )}
             />
+            <RBSheet
+                ref={deleteRBSheetRef}
+                height={150}
+                openDuration={250}
+                customStyles={{
+                    container: {
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        borderTopLeftRadius: 20,
+                        borderTopRightRadius: 20,
+                    },
+                }}
+            >
+                <View style={styles.rbSheetContainer}>
+                    <Text style={styles.rbSheetText}>Do you want to delete this post?</Text>
+                    <View className="flex-row justify-between">
+                        <TouchableOpacity className="flex-1 bg-gray-200 py-3 rounded-full mr-2" onPress={() => deleteRBSheetRef.current.close()}>
+                            <Text className="text-center text-gray-800 font-medium">Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity className="flex-1 bg-red-600 py-3 rounded-full" onPress={confirmDelete}>
+                            <Text className="text-center text-white font-medium">Delete</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </RBSheet>
+
         </View>
     );
 });
@@ -294,7 +417,7 @@ const StreamerProfile = () => {
                             >
                                 {data?.name}
                             </Text>
-                            
+
                             <View style={styles.detailsRow}>
                                 <View style={styles.detailItem}>
                                     <Feather name="user" size={14} color="#888" />
@@ -303,13 +426,6 @@ const StreamerProfile = () => {
                                     </Text>
                                 </View>
 
-                                {/* <Text
-                                    style={[styles.location, { color: 'gray' }]}
-                                    allowFontScaling={true}
-                                >
-                                    Phone: {data?.phoneNumber}
-                                </Text> */}
-                                
                                 <View style={styles.detailItem}>
                                     <Ionicons name="language-outline" size={14} color="#888" />
                                     <Text style={styles.detailText}>
@@ -317,12 +433,6 @@ const StreamerProfile = () => {
                                     </Text>
                                 </View>
                             </View>
-                            {/* <Text
-                                style={[styles.location, { color: theme === 'dark' ? '#ccc' : 'gray' }]}
-                                allowFontScaling={true}
-                            >
-                                Date Of Birth: {data?.birthDay}-{data?.birthMonth}-{data?.birthYear}
-                            </Text> */}
                         </View>
                     </LinearGradient>
 
@@ -344,29 +454,6 @@ const StreamerProfile = () => {
                             label="Followings"
                             onPress={() => navigation.navigate('Following')}
                         />
-                        {/* <TouchableOpacity
-                            onPressIn={() => (scale.value = withSpring(0.95))}
-                            onPressOut={() => (scale.value = withSpring(1))}
-                            accessibilityRole="button"
-                        >
-                            <View style={styles.statCardMain} >
-                                <Animated.View style={[styles.statCard]}>
-                                    <Image source={coinImage} style={[{width: 33, height: 25, objectFit: 'contain'}]} />
-                                    <Text
-                                        style={[styles.statValue, { color: '#000' }]}
-                                        allowFontScaling={true}
-                                    >
-                                        {(user?.coins || 0).toFixed(2)}
-                                    </Text>
-                                    <Text
-                                        style={[styles.statLabel, { color: '#000' }]}
-                                        allowFontScaling={true}
-                                    >
-                                        Coins
-                                    </Text>
-                                </Animated.View>
-                            </View>
-                        </TouchableOpacity> */}
                     </View>
 
                     <View style={styles.buttonDiv}>
@@ -381,225 +468,7 @@ const StreamerProfile = () => {
     );
 };
 
-// const styles = StyleSheet.create({
-//     container: {
-//         flexGrow: 1,
-//         padding: 20,
-//     },
-//     header: {
-//         position: 'absolute',
-//         top: 0,
-//         right: 10,
-//     },
-//     profileHeader: {
-//         flexDirection: 'row',
-//         alignItems: 'center',
-//         gap: 12,
-//         marginBottom: 20,
-//     },
-//     profileImageContainer: {
-//         position: 'relative',
-//     },
-//     profileImage: {
-//         width: 100,
-//         height: 100,
-//         borderRadius: 50,
-//     },
-//     profileRing: {
-//         position: 'absolute',
-//         bottom: 0,
-//         right: 0,
-//         width: 30,
-//         height: 30,
-//         borderRadius: 15,
-//         backgroundColor: '#6200EE',
-//         justifyContent: 'center',
-//         alignItems: 'center',
-//     },
-//     profileRingText: {
-//         color: '#fff',
-//         fontSize: 10,
-//         fontWeight: 'bold',
-//     },
-//     textContainer: {
-//         flex: 1,
-//     },
-//     username: {
-//         fontSize: 20,
-//         fontWeight: '700',
-//     },
-//     profileDetails: {
-//         flexDirection: 'row',
-//         flexWrap: 'wrap',
-//         marginTop: 5,
-//         gap: 10,
-//     },
-//     location: {
-//         fontSize: 13,
-//         textTransform: 'capitalize',
-//     },
-//     editButton: {
-//         flexDirection: 'row',
-//         alignItems: 'center',
-//         backgroundColor: '#6200EE',
-//         paddingVertical: 8,
-//         paddingHorizontal: 12,
-//         borderRadius: 20,
-//         marginTop: 10,
-//     },
-//     editButtonText: {
-//         color: '#fff',
-//         fontSize: 14,
-//         marginLeft: 5,
-//     },
-//     statsContainer: {
-//         flexDirection: 'row',
-//         justifyContent: 'space-between',
-//         alignItems: 'center',
-//         width: '100%',
-//         marginBottom: 20,
-//     },
-//     statCardMain: {
-//         flex: 1,
-//         alignItems: 'center',
-//         justifyContent: 'center',
-//     },
-//     statCard: {
-//         alignItems: 'center',
-//         paddingVertical: 10,
-//         paddingHorizontal: 10,
-//     },
-//     statValue: {
-//         fontSize: 16,
-//         fontWeight: '600',
-//         color: '#000',
-//         marginTop: 5,
-//     },
-//     statLabel: {
-//         fontSize: 14,
-//         color: '#000',
-//         marginTop: 2,
-//     },
-//     buttonDiv: {
-//         flexDirection: 'row',
-//         justifyContent: 'space-between',
-//         marginBottom: 20,
-//     },
-//     buttonContainer: {
-//         width: '48%',
-//     },
-//     button: {
-//         paddingHorizontal: 10,
-//         paddingVertical: 15,
-//         borderRadius: 40,
-//         flexDirection: 'row',
-//         justifyContent: 'center',
-//         borderWidth: 0.5,
-//         borderColor: 'grey',
-//     },
-//     buttonText: {
-//         fontSize: 16,
-//     },
-//     postsContainer: {
-//         flex: 1,
-//     },
-//     sectionTitle: {
-//         fontSize: 20,
-//         fontWeight: '700',
-//         marginBottom: 10,
-//     },
-//     tabBar: {
-//         flexDirection: 'row',
-//         justifyContent: 'space-around',
-//         marginBottom: 15,
-//     },
-//     tabItem: {
-//         paddingVertical: 8,
-//         paddingHorizontal: 12,
-//     },
-//     activeTabItem: {
-//         borderBottomWidth: 2,
-//         borderBottomColor: '#6200EE',
-//     },
-//     tabLabel: {
-//         fontSize: 14,
-//         fontWeight: '500',
-//     },
-//     activeTabLabel: {
-//         color: '#6200EE',
-//         fontWeight: '600',
-//     },
-//     emptyContainer: {
-//         alignItems: 'center',
-//         justifyContent: 'center',
-//         marginTop: 50,
-//     },
-//     emptyText: {
-//         fontSize: 16,
-//     },
-//     postCard: {
-//         backgroundColor: '#FFFFFF',
-//         borderRadius: 16,
-//         padding: 16,
-//         marginBottom: 16,
-//         shadowColor: '#000',
-//         shadowOffset: { width: 0, height: 2 },
-//         shadowOpacity: 0.05,
-//         shadowRadius: 6,
-//         elevation: 2,
-//     },
-//     postHeader: {
-//         marginBottom: 12,
-//     },
-//     postUser: {
-//         flexDirection: 'row',
-//         alignItems: 'center',
-//     },
-//     postUserImage: {
-//         width: 36,
-//         height: 36,
-//         borderRadius: 18,
-//     },
-//     postUserInfo: {
-//         marginLeft: 12,
-//     },
-//     postUserName: {
-//         fontSize: 16,
-//         fontWeight: '600',
-//         color: '#333',
-//     },
-//     postCaption: {
-//         fontSize: 14,
-//         color: '#555',
-//         marginBottom: 12,
-//         lineHeight: 20,
-//     },
-//     postMedia: {
-//         width: '100%',
-//         height: 240,
-//         borderRadius: 12,
-//         marginBottom: 12,
-//     },
-//     videoPlayer: {
-//         width: '100%',
-//         height: 240,
-//         borderRadius: 12,
-//         marginBottom: 12,
-//     },
-//     postFooter: {
-//         flexDirection: 'row',
-//         justifyContent: 'space-around',
-//     },
-//     postAction: {
-//         flexDirection: 'row',
-//         alignItems: 'center',
-//     },
-//     postActionText: {
-//         fontSize: 14,
-//         color: '#888',
-//         marginLeft: 6,
-//     },
-// });
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -835,6 +704,9 @@ const styles = StyleSheet.create({
     },
     postHeader: {
         marginBottom: 12,
+        flexDirection: 'row', // Arrange children horizontally
+        justifyContent: 'space-between', // Push items to the far ends
+        alignItems: 'center',
     },
     postUser: {
         flexDirection: 'row',
@@ -861,7 +733,7 @@ const styles = StyleSheet.create({
     },
     postMedia: {
         width: '100%',
-        height: 240,
+        height: 400,
         borderRadius: 12,
         marginBottom: 12,
     },
@@ -883,6 +755,40 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#888',
         marginLeft: 6,
+    },
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    dropdown: {
+        backgroundColor: '#fff',
+        borderRadius: 5,
+        padding: 10,
+        position: 'absolute',
+        width: 120, // You might want to adjust this or make it dynamic
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    dropdownItem: {
+        paddingVertical: 10,
+    },
+    dropdownItemText: {
+        fontSize: 16,
+        color: '#333',
+    },
+    rbSheetContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    rbSheetText: {
+        fontSize: 18,
+        marginBottom: 20,
+        textAlign: 'center',
     },
 });
 

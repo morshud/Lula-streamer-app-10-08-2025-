@@ -3,10 +3,9 @@ import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity } from 'react
 import { useNavigation } from '@react-navigation/native'
 import { LinearGradient } from 'expo-linear-gradient'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
+import avatarMen from '../assets/images/avatar.png' // Your default avatar image
 import avatar from '../assets/images/men.png' // Your default avatar image
 import AuthService from '../services/AuthService'
-
-// Import your UserService (or the service you use to fetch chat data)
 import ChatService from '../services/ChatService' // assuming ChatService has getChatList method
 import { useSelector } from 'react-redux'
 import { formatDate } from '../utils/function'
@@ -19,6 +18,7 @@ const ChatList = () => {
     const [lastVisible, setLastVisible] = useState(null) // Store last visible for pagination
     const [loading, setLoading] = useState(false) // For loading indicator
     const [refreshing, setRefreshing] = useState(false)
+
     // Fetch chats when component mounts or when pagination triggers
     const fetchChats = async (reset = false) => {
         if (loading) return // Prevent multiple requests simultaneously
@@ -26,8 +26,6 @@ const ChatList = () => {
 
         try {
             const result = await ChatService.getChatList(10, reset ? null : lastVisible, user.id) // replace 'streamerId' with actual streamer ID
-            console.log(result)
-
             setMessages((prevMessages) => (reset ? result.chats : [...prevMessages, ...result.chats])) // Append new messages to the existing list
             setLastVisible(result.lastVisible) // Update lastVisible for pagination
         } catch (error) {
@@ -56,9 +54,9 @@ const ChatList = () => {
                     setData(res.user)
                 }
             } catch (error) {
-                handleError(error)
+                console.error(error)
             } finally {
-                setIsLoading(false)
+                setLoading(false)
             }
         }
         getData()
@@ -66,8 +64,14 @@ const ChatList = () => {
 
     // Render each chat item in FlatList
     const renderChatItem = ({ item }) => (
-        <TouchableOpacity style={styles.chatItem} onPress={() => navigation.navigate('Chat', { chatId: item.id })}>
-            <Image source={item.user?.profileUri ? { uri: item.user.profileUri } : require('../assets/images/avatar.png')} style={styles.image} />
+        <TouchableOpacity
+            style={styles.chatItem}
+            onPress={() => navigation.navigate('Chat', { chatId: item.id })}
+        >
+            <Image
+                source={item.user?.profileUri ? { uri: item.user.profileUri } : {avatarMen}}
+                style={styles.image}
+            />
             <View style={styles.textContainer}>
                 <Text style={styles.name}>{item.user?.name || 'Anonymous User'}</Text>
                 <Text style={styles.message}>{item.lastMessage}</Text>
@@ -77,15 +81,24 @@ const ChatList = () => {
     )
 
     return (
-        <LinearGradient colors={['rgba(171, 73, 161, 0.9)', 'rgba(97, 86, 226, 0.9)']} style={styles.gradient}>
+        <LinearGradient
+            colors={['rgba(171, 73, 161, 0.9)', 'rgba(97, 86, 226, 0.9)']}
+            style={styles.gradient}
+        >
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Chats</Text>
                 <View style={styles.headerIcons}>
-                    <TouchableOpacity style={styles.headerIconsTab} onPress={() => navigation.navigate('Analytics')}>
+                    <TouchableOpacity
+                        style={styles.headerIconsTab}
+                        onPress={() => navigation.navigate('Analytics')}
+                    >
                         <MaterialIcons name="analytics" size={29} color="#fff" />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => navigation.navigate('StreamerProfile')}>
-                        <Image source={data?.profileUri ? { uri: data?.profileUri } : {avatar}} style={styles.headerIconsImage} />
+                        <Image
+                            source={data?.profileUri ? { uri: data.profileUri } : avatar} // <-- FIXED here
+                            style={styles.headerIconsImage}
+                        />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -97,7 +110,11 @@ const ChatList = () => {
                     // onEndReached={fetchChats} // Load more chats when reaching the end
                     // onEndReachedThreshold={0.5} // Threshold for triggering `onEndReached`
                     style={styles.messagesContent}
-                    ListFooterComponent={loading ? <View style={styles.loading}><Text>Loading...</Text></View> : null} // Show loading indicator while fetching
+                    ListFooterComponent={loading ? (
+                        <View style={styles.loading}>
+                            <Text>Loading...</Text>
+                        </View>
+                    ) : null}
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
                 />

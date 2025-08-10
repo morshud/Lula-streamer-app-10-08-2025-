@@ -32,6 +32,7 @@ import Withdraw from "./Withdraw"
 import PendingVerification from './PendingVerification'
 import CreateVideo from './CreateVideo'
 import CallLogScreen from './CallLogScreen'
+import EditPost from './EditPost'
 
 export {
     NoInternet,
@@ -64,5 +65,6 @@ export {
     Withdraw,
     PendingVerification,
     CreateVideo,
-    CallLogScreen
+    CallLogScreen,
+    EditPost
 }

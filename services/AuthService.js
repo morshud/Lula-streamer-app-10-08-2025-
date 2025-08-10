@@ -17,16 +17,50 @@ class AuthService extends BaseService {
   // 📲 Send OTP to phone
   async register(phoneNumber) {
     try {
-      const response = await axios.post(`${API_BASE_URL}/send-otp`, {
-        phoneNumber,
-      })
+      // const response = await axios.post(`${API_BASE_URL}/send-otp`, {
+      //   phoneNumber,
+      // })
 
-      if (!response.data.error) {
-        this.#phoneNumber = phoneNumber
-        return { error: false, confirmation: true }
+      // if (!response.data.error) {
+      //   this.#phoneNumber = phoneNumber
+      //   return { error: false, confirmation: true }
+      // }
+
+      //return { error: true, message: response.data.message }
+      // Check if user already exists with the phone number
+      const existingUserQuery = await this.db.collection(this.#collection).where('phoneNumber', '==', phoneNumber).where('role', '==', 'STREAMER').limit(1).get();
+
+      if (!existingUserQuery.empty) {
+        // User exists, return existing user data
+        const existingDoc = existingUserQuery.docs[0];
+        const user = this.fromFirestore(existingDoc);
+
+        // Save user ID to AsyncStorage
+        await AsyncStorage.setItem('loggedInUserId', user.id);
+
+        return { error: false, user };
+      } else {
+        // User does not exist, create a new user document
+        const userData = {
+          phoneNumber: phoneNumber,
+          role: 'STREAMER', // Assuming 'STREAMER' is the default role for new users
+          status: true,
+          isDeleted: false,
+          profileCompleted: false, // New users haven't completed their profile
+          statusShow: true,
+        };
+
+        const addedRef = await this.db.collection(this.#collection).add(this.toFirestore(userData));
+        await addedRef.update({ id: addedRef.id });
+
+        const newDoc = await addedRef.get();
+        const user = this.fromFirestore(newDoc);
+
+        // Save user ID to AsyncStorage
+        await AsyncStorage.setItem('loggedInUserId', user.id);
+
+        return { error: false, user };
       }
-
-      return { error: true, message: response.data.message }
     } catch (error) {
       console.error('Error sending OTP:', error.message)
       return this.handleError('Failed to send verification code')

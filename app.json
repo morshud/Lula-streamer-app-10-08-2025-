@@ -2,7 +2,7 @@
   "expo": {
     "name": "Lula Streamer",
     "slug": "lula-streamer",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
@@ -12,11 +12,13 @@
       "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": [
+      "assets/sounds/*.mp3",
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bitcode": false
+      "bitcode": false,
+      "bundleIdentifier": "n"
     },
     "android": {
       "adaptiveIcon": {
@@ -26,25 +28,25 @@
       "package": "com.lula.streamer",
       "googleServicesFile": "./google-services.json",
       "permissions": [
-        "android.permissions.CAMERA",
-        "android.permissions.RECORD_AUDIO",
-        "android.permissions.INTERNET",
-        "android.permissions.MODIFY_AUDIO_SETTINGS",
-        "android.permissions.BLUETOOTH",
-        "android.permissions.BLUETOOTH_ADMIN",
-        "android.permissions.BLUETOOTH_CONNECT",
-        "android.permissions.BLUETOOTH_SCAN",
-        "android.permission.BLUETOOTH",
-        "android.permission.BLUETOOTH_CONNECT",
-        "android.permission.BLUETOOTH_ADMIN",
-        "android.permission.ACCESS_NETWORK_STATE",
         "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
         "android.permission.INTERNET",
         "android.permission.MODIFY_AUDIO_SETTINGS",
-        "android.permission.RECORD_AUDIO",
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_SCAN",
         "android.permission.SYSTEM_ALERT_WINDOW",
-        "android.permission.WAKE_LOCK"
-      ]
+        "android.permission.WAKE_LOCK",
+        "android.permission.VIBRATE",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.USE_FULL_SCREEN_INTENT",
+        "android.permission.FOREGROUND_SERVICE"
+      ],
+      "notification": {
+        "sound": "my_awesome_ringtone.mp3",
+        "defaultSound": false
+      }
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
@@ -75,9 +77,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "66ef883e-382d-4ba4-bdc9-65a59d3a06cb"
+        "projectId": "6b41ce9d-c216-42f2-9bfe-248c572c0614"
       }
     },
-    "owner": "prisdah"
+    "owner": "heliant"
   }
 }

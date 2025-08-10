@@ -1,16 +1,31 @@
 import { ActivityIndicator, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import { StreamVideo, useStreamVideoClient, CallingState, CallContent, StreamCall, useCallStateHooks } from '@stream-io/video-react-native-sdk'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import CallManager from '../utils/CallManager'
 import AuthService from '../services/AuthService'
-import CallService from '../services/CallService'
 import { handleError } from '../utils/function'
 import uuid from 'react-native-uuid'
 import { useSelector } from 'react-redux'
 import { callType } from '../constants/data'
 import { LinearGradient } from 'expo-linear-gradient'
+
+const sendFCMNotificationViaBackend = async (token, callId, callerName, callerId) => {
+  try {
+    const response = await fetch('https://lula-fcm-notification.vercel.app/api/send-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token,
+        data: { callId, callerName, callerId },
+      }),
+    })
+    const result = await response.text()
+  } catch (error) {
+    console.error('Error sending FCM notification:', error)
+  }
+}
 
 const CallRoom = ({ call, endCall }) => {
     const navigation = useNavigation()
@@ -21,8 +36,7 @@ const CallRoom = ({ call, endCall }) => {
 
     useEffect(() => {
         if (callState === CallingState.LEFT) {
-            console.log('Call ended from other side')
-            endCall(callState === CallingState.LEFT ? 'completed' : 'failed')
+            endCall()
             navigation.goBack()
         }
     }, [callState])
@@ -44,7 +58,7 @@ const CallRoom = ({ call, endCall }) => {
                             <View style={{ padding: 20, backgroundColor: 'white', borderRadius: 10 }}>
                                 <ActivityIndicator size="large" />
                                 <Text style={{ marginTop: 10, textAlign: 'center' }}>Waiting for other participant to join...</Text>
-                                <TouchableOpacity onPress={() => endCall('cancelled')}> 
+                                <TouchableOpacity onPress={() => endCall()}>
                                     <LinearGradient colors={['#CE54C1', 'rgba(97, 86, 226, 0.9)']} style={styles.sendButton}>
                                         <Text className="text-white">Close</Text>
                                     </LinearGradient>
@@ -57,7 +71,7 @@ const CallRoom = ({ call, endCall }) => {
                     onHangupCallHandler={() => {
                         navigation.goBack()
                         call?.endCall()
-                        endCall('completed')
+                        endCall()
                     }}
                 />
             </GestureHandlerRootView>
@@ -74,13 +88,10 @@ const CallComponent = () => {
     const client = useStreamVideoClient()
     const [call, setCall] = useState(null)
     const [slug, setSlug] = useState(null)
-    const callLogIdRef = useRef(null) // Ref to store the call log ID
-    const callStartTimeRef = useRef(null) // Ref to store the call start time
 
     const handleCall = async (callId) => {
         try {
             const res = await AuthService.getUser(userId)
-            console.log(res)
 
             if (res?.user?.currentCall) {
                 return { error: true, message: 'User Already on another Call!' }
@@ -91,22 +102,15 @@ const CallComponent = () => {
                 AuthService.update(user?.id, { currentCall: { callId, type: callType.OUTGOING }, inCall: true }),
             ])
 
-            console.log('Call Initiated')
+            // Fetch caller name once
+            const callerRes = await AuthService.getUser(user.id)
+            const recipientFCMToken = res.user.fcmTokens || null
+            const callerName = callerRes?.user?.name || 'Unknown'
 
-            // Add call log entry when call is initiated
-            const startTime = Date.now()
-            callStartTimeRef.current = startTime // Store start time
-            const logRes = await CallService.addCallLog({
-                callerId: user.id,
-                receiverId: userId,
-                startTime: startTime,
-                status: 'ongoing',
-            })
-            if (!logRes.error) {
-                callLogIdRef.current = logRes.data // Store the call log ID
+            if (recipientFCMToken) {
+                await sendFCMNotificationViaBackend(recipientFCMToken, callId, callerName, user.id)
             } else {
-                console.error('Failed to add initial call log:', logRes.message)
-                // Optionally show a toast or handle this error appropriately
+                console.warn('Missing recipient FCM token, cannot send notification')
             }
 
             return { error: false, message: 'Call Created!' }
@@ -115,43 +119,12 @@ const CallComponent = () => {
         }
     }
 
-    // const endCall = async () => {
-    //     console.log('end call function')
+    const endCall = async () => {
 
-    //     await Promise.all([AuthService.update(userId, { currentCall: '', inCall: false }), AuthService.update(user.id, { currentCall: '', inCall: false })])
-    //     call?.endCall()
-    //     if (navigation.canGoBack()) {
-    //         navigation.goBack()
-    //     }
-    // }
-    const endCall = async (status = 'completed') => { // Add status parameter
-        console.log('end call function')
-
-        // Update call log entry when call ends
-        if (callLogIdRef.current) {
-            const endTime = Date.now()
-            const duration = callStartTimeRef.current ? Math.max(0, Math.floor((endTime - callStartTimeRef.current) / 1000)) : 0 // Calculate duration in seconds
-            console.log(duration)
-            await CallService.updateCallLog(callLogIdRef.current, {
-                endTime: endTime,
-                duration: duration,
-                status: status,
-            })
-             callLogIdRef.current = null // Clear the stored ID
-             callStartTimeRef.current = null // Clear the stored start time
-        }
-
-        // Reset user statuses
-        await Promise.all([
-            AuthService.update(userId, { currentCall: '', inCall: false }),
-            AuthService.update(user.id, { currentCall: '', inCall: false }),
-        ])
-
-        // End Stream call
-        try {
-           await call?.endCall()
-        } catch (error) {
-            console.error('Error ending Stream call:', error)
+        await Promise.all([AuthService.update(userId, { currentCall: '', inCall: false }), AuthService.update(user.id, { currentCall: '', inCall: false })])
+        call?.endCall()
+        if (navigation.canGoBack()) {
+            navigation.goBack()
         }
     }
 
@@ -162,8 +135,7 @@ const CallComponent = () => {
                 slug = id.callId.toString()
                 const _call = client.call('default', slug)
                 if (end) {
-                    // await Promise.all([_call.endCall(), endCall()])
-                    await Promise.all([_call.endCall(), endCall('ended_by_receiver')])
+                    await Promise.all([_call.endCall(), endCall()])
                 }
                 _call.join({ create: false }).then(() => {
                     setCall(_call)
@@ -181,7 +153,6 @@ const CallComponent = () => {
                     setCall(_call)
                 })
             }
-            console.log(slug)
 
             setSlug(slug)
         }
@@ -189,10 +160,9 @@ const CallComponent = () => {
 
         return () => {
             if (call?.state.callState !== CallingState.LEFT) {
-                console.log('effect return')
 
                 call?.endCall()
-                endCall('completed')
+                endCall()
             }
         }
     }, [client, id])

@@ -31,6 +31,7 @@ class BaseService {
         return {
             ...data,
             createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
         }
     }
 
@@ -40,6 +41,7 @@ class BaseService {
             ...data,
             id: doc.id,
             createdAt: data?.createdAt?.toDate().toString(),
+            updatedAt: data?.updatedAt?.toDate().toString(),
         }
     }
 

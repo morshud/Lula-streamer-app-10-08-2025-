@@ -11,25 +11,49 @@ class CallManager {
         if (CallManager.instance) {
             return CallManager.instance; // Ensure singleton instance
         }
+        
 
         this.user = user;
+        const token = this.tokenProvider.bind(this, user?.id)
+        console.log('Stream Token:' ,token)
         this.client = new StreamVideoClient({
-            apiKey: '62qpjv7q879v',
+            apiKey: 'd9haf5vcbwwp',
             user,
-            tokenProvider: this.tokenProvider,
+            tokenProvider: token,
             options: {
                 logger: (logLevel, message) => console.log(message),
             },
         });
 
-        this.setupCallListeners();
+        this.setupCallListeners()
         CallManager.instance = this;
     }
 
-    async tokenProvider() {
+    // async tokenProvider() {
+    //     try {
+    //         const reference = functions().httpsCallable('generateStreamToken');
+    //         const { data } = await reference({ user: this.user });
+    //         return data.token;
+    //     } catch (error) {
+    //         console.error('Error generating token:', error);
+    //     }
+    // }
+    async tokenProvider(userId) {
+        console.log(userId)
         try {
-            const reference = functions().httpsCallable('generateStreamToken');
-            const { data } = await reference({ user: this.user });
+            const response = await fetch('https://lula-fcm-notification.vercel.app/api/generate-token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userId: userId }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch token from Vercel function');
+            }
+
+            const data = await response.json();
             return data.token;
         } catch (error) {
             console.error('Error generating token:', error);
