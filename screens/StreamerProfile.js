@@ -66,12 +66,27 @@ const Posts = React.memo(({ posts, setPosts }) => {
     const deleteRBSheetRef = useRef();
     const navigation = useNavigation();
     const dotsRef = useRef({}); // To store references to the dots-three-vertical touchables
+    const [aspectRatios, setAspectRatios] = useState({});
 
     const filteredPosts = posts.filter((post) => {
         if (tab === 'All') return true;
         if (tab === 'Images') return post.type === 'FEED';
         return post.type === 'VIDEO';
     });
+
+    useEffect(() => {
+        filteredPosts.forEach((post) => {
+            if (post.type === 'FEED' && !aspectRatios[post.id]) {
+                Image.getSize(
+                    post.mediaUrl,
+                    (width, height) => {
+                        setAspectRatios((prev) => ({ ...prev, [post.id]: width / height }));
+                    },
+                    () => {}
+                );
+            }
+        });
+    }, [filteredPosts, aspectRatios]);
 
     const handleEditPost = (post) => {
         setDropdownVisible(null);
@@ -190,8 +205,13 @@ const Posts = React.memo(({ posts, setPosts }) => {
                         {item.type === 'FEED' ? (
                             <Image
                                 source={{ uri: item.mediaUrl }}
-                                style={styles.postMedia}
-                                resizeMode="cover"
+                                style={[
+                                    styles.postMedia,
+                                    aspectRatios[item.id]
+                                        ? { aspectRatio: aspectRatios[item.id] }
+                                        : null,
+                                ]}
+                                resizeMode="contain"
                                 accessibilityLabel="Post image"
                             />
                         ) : (
@@ -199,7 +219,7 @@ const Posts = React.memo(({ posts, setPosts }) => {
                                 source={{ uri: item.mediaUrl }}
                                 style={styles.videoPlayer}
                                 useNativeControls
-                                resizeMode="cover"
+                                resizeMode="contain"
                                 isLooping
                                 accessibilityLabel="Post video"
                             />
@@ -733,9 +753,9 @@ const styles = StyleSheet.create({
     },
     postMedia: {
         width: '100%',
-        height: 400,
         borderRadius: 12,
         marginBottom: 12,
+        backgroundColor: '#000',
     },
     videoPlayer: {
         width: '100%',
