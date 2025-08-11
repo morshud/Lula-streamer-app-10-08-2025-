@@ -22,8 +22,9 @@ const CreatePost = ({ navigation }) => {
             quality: 1,
         })
         if (!result.canceled) {
-            setMedia(result.assets[0].uri)
-            setType(result.assets[0].type.includes('video') ? 'VIDEO' : 'FEED')
+            const asset = result.assets[0]
+            setMedia({ uri: asset.uri, width: asset.width, height: asset.height })
+            setType(asset.type.includes('video') ? 'VIDEO' : 'FEED')
         }
     }
 
@@ -34,7 +35,7 @@ const CreatePost = ({ navigation }) => {
                 return
             }
             setIsSubmitting(true)
-            const mediaUrl = await PostService.uploadFiles(media, '/lula/streamer/post')
+            const mediaUrl = await PostService.uploadFiles(media.uri, '/lula/streamer/post')
             const response = await PostService.createPost(user.id, type, mediaUrl, caption)
             if (!response.error) {
                 showToast('Post Created!', 'success')
@@ -53,12 +54,22 @@ const CreatePost = ({ navigation }) => {
         <View style={styles.container}>
             <Text style={styles.title}>Create Post</Text>
             <TextInput style={styles.input} placeholder="Write a caption..." value={caption} onChangeText={setCaption} />
-            <TouchableOpacity style={styles.mediaPicker} onPress={pickMedia}>
+            <TouchableOpacity style={[styles.mediaPicker, !media && styles.mediaPlaceholder]} onPress={pickMedia}>
                 {media ? (
-                    type === 'video' ? (
-                        <Video source={{ uri: media }} style={styles.mediaPreview} useNativeControls resizeMode="contain" isLooping />
+                    type === 'VIDEO' ? (
+                        <Video
+                            source={{ uri: media.uri }}
+                            style={styles.mediaPreview}
+                            useNativeControls
+                            resizeMode="contain"
+                            isLooping
+                        />
                     ) : (
-                        <Image source={{ uri: media }} style={styles.mediaPreview} />
+                        <Image
+                            source={{ uri: media.uri }}
+                            style={[styles.mediaPreview, { aspectRatio: media.width / media.height }]}
+                            resizeMode="contain"
+                        />
                     )
                 ) : (
                     <Text>Select Image/Video</Text>
@@ -75,6 +86,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, padding: 20, backgroundColor: '#fff' },
     title: { fontSize: 24, fontWeight: 'bold', marginBottom: 10 },
     input: { borderWidth: 1, padding: 10, marginBottom: 10, borderRadius: 5 },
-    mediaPicker: { height: 200, backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-    mediaPreview: { width: '100%', height: '100%', resizeMode: 'cover' },
+    mediaPicker: { backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
+    mediaPlaceholder: { height: 200, width: '100%' },
+    mediaPreview: { width: '100%' },
 })
